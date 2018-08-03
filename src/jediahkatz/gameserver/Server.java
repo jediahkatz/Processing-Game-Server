@@ -133,7 +133,7 @@ public class Server {
 			response.setJSONObject("attributes", room.getAttributes());
 		} else {
 			response.setString("status", "error");
-			response.setInt("errorCode", 1);
+			response.setInt("errorCode", ErrorCode.ROOM_NOT_FOUND.ordinal());
 		}
 		
 		return response;
@@ -155,7 +155,7 @@ public class Server {
 			response.setString("status", "success");
 		} else {
 			response.setString("status", "error");
-			response.setInt("errorCode", 1);
+			response.setInt("errorCode", ErrorCode.ROOM_NOT_FOUND.ordinal());
 		}
 		
 		return response;
