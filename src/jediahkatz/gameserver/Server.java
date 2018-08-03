@@ -3,7 +3,7 @@ package jediahkatz.gameserver;
 import java.util.HashMap;
 
 import processing.core.*;
-import processing.data.*;
+import processing.data.JSONObject;
 import processing.net.*;
 
 /** A multiplayer game server.
@@ -70,19 +70,22 @@ public class Server {
 	 */
 	private void handleData(processing.net.Client client, JSONObject data) {
 		if (data.hasKey("action")) {
-			JSONObject response = null; 
+			JSONObject response; 
 			switch (data.getString("action")) {
-			// The client is requesting the creation of a new room.
 			case "registerRoom":
 				response = registerRoom(data.getInt("capacity"));
-			default:
 				break;
+			case "getRoomAttributes":
+				response = getRoomAttributes(data.getInt("roomId"));
+				break;
+			case "setRoomAttributes":
+			default:
+				throw new RuntimeException("Invalid action: " + data.getString("action"));
 			}
 			
-			if (response != null) {
-				send(client, response);
-			}
+			send(client, response);
 		}
+		throw new RuntimeException("Data sent to server must have an 'action' attribute.");
 	}
 	
 	/**
@@ -100,7 +103,8 @@ public class Server {
 	
 	/**
 	 * Register a new room and add it to the list of rooms.
-	 * @return
+	 * @param capacity the capacity of the room
+	 * @return the response to send to the client, containing "id" key
 	 */
 	private JSONObject registerRoom(int capacity) {
 		JSONObject response = new JSONObject();
@@ -111,6 +115,49 @@ public class Server {
 		
 		Room room = new Room(id, capacity);
 		rooms.put(id, room);
+		return response;
+	}
+	
+	/**
+	 * Get the attributes of a room.
+	 * @param roomId the id of the room
+	 * @return the response to send to the client, containing "attributes" key
+	 */
+	private JSONObject getRoomAttributes(int roomId) {
+		JSONObject response = new JSONObject();
+		response.setString("action", "getRoomAttributes");
+
+		Room room = rooms.get(roomId);
+		if (room != null) {
+			response.setString("status", "success");
+			response.setJSONObject("attributes", room.getAttributes());
+		} else {
+			response.setString("status", "error");
+			response.setInt("errorCode", 1);
+		}
+		
+		return response;
+	}
+	
+	/**
+	 * Set the attributes of a room.
+	 * @param roomId the id of the room
+	 * @param attributes the object to set as the new attributes
+	 * @return the response to send to the client
+	 */
+	private JSONObject setRoomAttributes(int roomId, JSONObject attributes) {
+		JSONObject response = new JSONObject();
+		response.setString("action", "getRoomAttributes");
+
+		Room room = rooms.get(roomId);
+		if (room != null) {
+			room.setAttributes(attributes);
+			response.setString("status", "success");
+		} else {
+			response.setString("status", "error");
+			response.setInt("errorCode", 1);
+		}
+		
 		return response;
 	}
 }
