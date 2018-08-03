@@ -1,6 +1,5 @@
 package jediahkatz.gameserver;
 
-
 import processing.core.*;
 import processing.net.*;
 
@@ -15,8 +14,9 @@ public class Server {
 	 * 
 	 * @param parent the current sketch (this)
 	 * @param port the port to transfer data over
+	 * @param roomCapacity the maximum number of clients in a room
 	 */
-	public Server(PApplet parent, int port) {
+	public Server(PApplet parent, int port, int roomCapacity) {
 		this.parent = parent;
 		parent.registerMethod("dispose", this);
 		parent.registerMethod("serverevent", this);
