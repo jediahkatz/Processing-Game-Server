@@ -1,11 +1,9 @@
 package jediahkatz.gameserver;
 
-import java.util.HashMap;
+import java.util.HashSet;
 
-import processing.core.*;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
-import processing.net.*;
 
 /** A room that can hold up to a fixed number of clients.
  * @author jediahkatz
@@ -15,10 +13,12 @@ public class Room {
 	private final int capacity;
 	private int size = 0;
 	private JSONObject attributes = new JSONObject();
-	private HashMap<Integer, Client> clients = new HashMap<>();
+	private Server server;
+	private HashSet<Integer> clientIds = new HashSet<>();
 	
-	public Room(int id, int capacity) {
-		this.id = id;
+	public Room(Server server, int roomId, int capacity) {
+		this.server = server;
+		this.id = roomId;
 		this.capacity = capacity;
 	}
 	
@@ -30,6 +30,7 @@ public class Room {
 		if (isFull()) {
 			throw new IllegalStateException("Room full");
 		}
+		// TODO
 	}
 	
 	/**

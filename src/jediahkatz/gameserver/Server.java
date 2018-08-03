@@ -5,7 +5,6 @@ import java.util.HashMap;
 import processing.core.*;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
-import processing.net.*;
 
 /** A multiplayer game server.
  * @author jediahkatz
@@ -18,6 +17,8 @@ public class Server {
 	private JSONObject attributes = new JSONObject();
 	
 	private HashMap<Integer, Room> rooms = new HashMap<>();
+	private HashMap<Integer, processing.net.Client> clients = new HashMap<>();
+	private HashMap<Integer, Integer> clientIdToRoomId = new HashMap<>();
 	
 	/**
 	 * 
@@ -77,6 +78,9 @@ public class Server {
 			case "registerRoom":
 				response = registerRoom(data.getInt("capacity"));
 				break;
+			case "joinRoom":
+				response = joinRoom(data.getInt("clientId"), data.getInt("roomId"));
+				break;
 			case "getRoomAttributes":
 				response = getRoomAttributes(data.getInt("roomId"));
 				break;
@@ -110,7 +114,9 @@ public class Server {
 		JSONObject response = new JSONObject();
 		response.setString("action", "registerClient");
 		response.setString("status", "success");
-		response.setInt("clientId", clientId++);
+		Integer id = clientId++;
+		response.setInt("clientId", id);
+		clients.put(id, client);
 		return response;
 	}
 	
@@ -126,9 +132,20 @@ public class Server {
 		int id = roomId++;
 		response.setInt("roomId", id);
 		
-		Room room = new Room(id, capacity);
+		Room room = new Room(this, id, capacity);
 		rooms.put(id, room);
 		return response;
+	}
+	
+	/**
+	 * Add a client to a room.
+	 * @param clientId the id of the client to add to the room
+	 * @param roomId the id of the room to add the client to
+	 * @return the response to send to the client
+	 */
+	private JSONObject joinRoom(int clientId, int roomId) {
+		// TODO
+		return null;
 	}
 	
 	/**
