@@ -83,8 +83,14 @@ public class Server {
 			case "setRoomAttributes":
 				response = setRoomAttributes(data.getInt("roomId"), data.getJSONObject("attributes"));
 				break;
-			case "putRoomAttributes":
+			case "putRoomAttribute":
 				response = putRoomAttribute(data.getInt("roomId"), data.getString("key"), data.get("value"));
+				break;
+			case "setServerAttributes":
+				response = setServerAttributes(data.getJSONObject("attributes"));
+				break;
+			case "putServerAttribute":
+				response = putServerAttribute(data.getString("key"), data.get("value"));
 				break;
 			default:
 				throw new RuntimeException("Invalid action: " + data.getString("action"));
@@ -154,7 +160,7 @@ public class Server {
 	 */
 	private JSONObject setRoomAttributes(int roomId, JSONObject attributes) {
 		JSONObject response = new JSONObject();
-		response.setString("action", "getRoomAttributes");
+		response.setString("action", "setRoomAttributes");
 
 		Room room = rooms.get(roomId);
 		if (room != null) {
@@ -177,13 +183,12 @@ public class Server {
 	 */
 	private JSONObject putRoomAttribute(int roomId, String key, Object value) {
 		JSONObject response = new JSONObject();
-		response.setString("action", "getRoomAttributes");
+		response.setString("action", "putRoomAttribute");
 
 		Room room = rooms.get(roomId);
 		if (room != null) {
-			room.setAttributes(attributes);
-			// This is the only way to figure out what kind of object was passed in
 			response.setString("status", "success");
+			// This is the only way to figure out what kind of object was passed in
 			if (value instanceof Integer) {
 				room.putAttribute(key, (int) value);
 			} else if (value instanceof String) {
@@ -204,6 +209,51 @@ public class Server {
 		} else {
 			response.setString("status", "error");
 			response.setInt("errorCode", ErrorCode.ROOM_NOT_FOUND.ordinal());
+		}
+		
+		return response;
+	}
+	
+	/**
+	 * Set the attributes associated with this server.
+	 * @param attributes the object to set as the new attributes
+	 * @return the response to send to the client
+	 */
+	private JSONObject setServerAttributes(JSONObject attributes) {
+		JSONObject response = new JSONObject();
+		this.attributes = attributes;
+		response.setString("action", "setServerAttributes");
+		response.setString("status", "success");
+		return response;
+	}
+	
+	/**
+	 * Set a single attribute for this server, or overwrite it if the key already exists.
+	 * @param key the key to associate to the value
+	 * @param value the value to be associated with the key
+	 * @return the response to send to the client
+	 */
+	private JSONObject putServerAttribute(String key, Object value) {
+		JSONObject response = new JSONObject();
+		response.setString("action", "putServerAttribute");
+		response.setString("status", "success");
+		// This is the only way to figure out what kind of object was passed in
+		if (value instanceof Integer) {
+			attributes.setInt(key, (int) value);
+		} else if (value instanceof String) {
+			attributes.setString(key, (String) value);
+		} else if (value instanceof Boolean) {
+			attributes.setBoolean(key, (boolean) value);
+		} else if (value instanceof JSONObject) {
+			attributes.setJSONObject(key, (JSONObject) value);
+		} else if (value instanceof JSONArray) {
+			attributes.setJSONArray(key, (JSONArray) value);
+		} else if (value instanceof Float) {
+			attributes.setFloat(key, (float) value);
+		} else if (value instanceof Double) {
+			attributes.setDouble(key, (double) value);
+		} else if (value instanceof Long) {
+			attributes.setLong(key, (long) value);
 		}
 		
 		return response;
