@@ -3,6 +3,7 @@ package jediahkatz.gameserver;
 import java.util.HashMap;
 
 import processing.core.*;
+import processing.data.JSONArray;
 import processing.data.JSONObject;
 import processing.net.*;
 
@@ -14,6 +15,7 @@ public class Server {
 	// Incrementing unique identifier to assign to clients and rooms
 	private int clientId = 0;
 	private int roomId = 0;
+	private JSONObject attributes = new JSONObject();
 	
 	private HashMap<Integer, Room> rooms = new HashMap<>();
 	
@@ -50,7 +52,7 @@ public class Server {
 	 * @param message the message to send
 	 */
 	private void send(processing.net.Client client, JSONObject data) {
-		String messageStr = data.format(0).replaceAll("\n", "");
+		String messageStr = data.toString();
 		client.write(messageStr);
 	}
 	
@@ -79,6 +81,11 @@ public class Server {
 				response = getRoomAttributes(data.getInt("roomId"));
 				break;
 			case "setRoomAttributes":
+				response = setRoomAttributes(data.getInt("roomId"), data.getJSONObject("attributes"));
+				break;
+			case "putRoomAttributes":
+				response = putRoomAttribute(data.getInt("roomId"), data.getString("key"), data.get("value"));
+				break;
 			default:
 				throw new RuntimeException("Invalid action: " + data.getString("action"));
 			}
@@ -91,27 +98,27 @@ public class Server {
 	/**
 	 * Register a client (assign it an ID).
 	 * @param client the client to register
-	 * @return the response to send to the client
+	 * @return the response to send to the client, containing "clientId" key
 	 */
 	private JSONObject registerClient(processing.net.Client client) {
 		JSONObject response = new JSONObject();
 		response.setString("action", "registerClient");
 		response.setString("status", "success");
-		response.setInt("id", clientId++);
+		response.setInt("clientId", clientId++);
 		return response;
 	}
 	
 	/**
 	 * Register a new room and add it to the list of rooms.
 	 * @param capacity the capacity of the room
-	 * @return the response to send to the client, containing "id" key
+	 * @return the response to send to the client, containing "roomId" key
 	 */
 	private JSONObject registerRoom(int capacity) {
 		JSONObject response = new JSONObject();
 		response.setString("action", "registerRoom");
 		response.setString("status", "success");
 		int id = roomId++;
-		response.setInt("id", id);
+		response.setInt("roomId", id);
 		
 		Room room = new Room(id, capacity);
 		rooms.put(id, room);
@@ -153,6 +160,47 @@ public class Server {
 		if (room != null) {
 			room.setAttributes(attributes);
 			response.setString("status", "success");
+		} else {
+			response.setString("status", "error");
+			response.setInt("errorCode", ErrorCode.ROOM_NOT_FOUND.ordinal());
+		}
+		
+		return response;
+	}
+	
+	/**
+	 * Set a single attribute for a room, or overwrite it if the key already exists.
+	 * @param roomId the id of the room
+	 * @param key the key to associate to the value
+	 * @param value the value to be associated with the key
+	 * @return the response to send to the client
+	 */
+	private JSONObject putRoomAttribute(int roomId, String key, Object value) {
+		JSONObject response = new JSONObject();
+		response.setString("action", "getRoomAttributes");
+
+		Room room = rooms.get(roomId);
+		if (room != null) {
+			room.setAttributes(attributes);
+			// This is the only way to figure out what kind of object was passed in
+			response.setString("status", "success");
+			if (value instanceof Integer) {
+				room.putAttribute(key, (int) value);
+			} else if (value instanceof String) {
+				room.putAttribute(key, (String) value);
+			} else if (value instanceof Boolean) {
+				room.putAttribute(key, (boolean) value);
+			} else if (value instanceof JSONObject) {
+				room.putAttribute(key, (JSONObject) value);
+			} else if (value instanceof JSONArray) {
+				room.putAttribute(key, (JSONArray) value);
+			} else if (value instanceof Float) {
+				room.putAttribute(key, (float) value);
+			} else if (value instanceof Double) {
+				room.putAttribute(key, (double) value);
+			} else if (value instanceof Long) {
+				room.putAttribute(key, (long) value);
+			}
 		} else {
 			response.setString("status", "error");
 			response.setInt("errorCode", ErrorCode.ROOM_NOT_FOUND.ordinal());
