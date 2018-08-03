@@ -7,5 +7,14 @@ import processing.net.*;
  * @author jediahkatz
  */
 public class Client {
-	private PApplet parent;
+	private final int id = 0; // TODO: don't keep this
+	private processing.net.Client client;
+	
+	public Client(PApplet parent, String host, int port) {
+		client = new processing.net.Client(parent, host, port);
+	}
+	
+	public int getId() {
+		return id;
+	}
 }

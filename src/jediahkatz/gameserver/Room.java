@@ -9,12 +9,28 @@ import processing.net.*;
  * @author jediahkatz
  */
 public class Room {
-	private PApplet parent;
+	private final int id;
 	private final int capacity;
-	private HashMap<Integer, Client> clients;
+	private int size = 0;
+	private HashMap<Integer, Client> clients = new HashMap<>();
 	
-	public Room(int capacity) {
+	public Room(int id, int capacity) {
+		this.id = id;
 		this.capacity = capacity;
+	}
+	
+	/**
+	 * Add a Client to this room.
+	 * @throws IllegalStateException if the room is full
+	 */
+	public void addClient() {
+		if (isFull()) {
+			throw new IllegalStateException("Room full");
+		}
+	}
+	
+	public boolean isFull() {
+		return size == capacity;
 	}
 
 }
