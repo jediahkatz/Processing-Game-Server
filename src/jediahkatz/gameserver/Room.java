@@ -11,7 +11,6 @@ import processing.data.JSONObject;
 public class Room {
 	private final int id;
 	private final int capacity;
-	private int size = 0;
 	private JSONObject attributes = new JSONObject();
 	private GameServer server;
 	private HashSet<Integer> clientIds = new HashSet<>();
@@ -34,10 +33,31 @@ public class Room {
 	}
 	
 	/**
+	 * Remove a client from this room.
+	 */
+	public void removeClient(int clientId) {
+		clientIds.remove(clientId);
+	}
+	
+	/**
+	 * Returns the number of clients currently in this room.
+	 */
+	public int size() {
+		return clientIds.size();
+	}
+	
+	/**
+	 * Return the maximum number of clients that can be in this room.
+	 */
+	public int capacity() {
+		return capacity;
+	}
+	
+	/**
 	 * Return true if this room is full.
 	 */
 	public boolean isFull() {
-		return size == capacity;
+		return size() == capacity();
 	}
 	
 	/**

@@ -1,6 +1,9 @@
 package jediahkatz.gameserver;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map.Entry;
+import java.util.Objects;
 
 import processing.core.*;
 import processing.net.*;
@@ -11,15 +14,19 @@ import processing.data.JSONObject;
  * @author jediahkatz
  */
 public class GameServer {
+	// Beep character - data separator
+	private final char SEP = (char) 7;
 	private Server server;
 	// Incrementing unique identifier to assign to clients and rooms
 	private int clientId = 0;
 	private int roomId = 0;
 	private JSONObject attributes = new JSONObject();
-	
+	// Data structures storing rooms/clients
 	private HashMap<Integer, Room> rooms = new HashMap<>();
 	private HashMap<Integer, processing.net.Client> clients = new HashMap<>();
 	private HashMap<Integer, Integer> clientIdToRoomId = new HashMap<>();
+	// Keep track of which clients have disconnected safely - this stores their hashcodes
+	private HashSet<Integer> disconnected = new HashSet<>();
 	
 	/**
 	 * 
@@ -27,7 +34,9 @@ public class GameServer {
 	 * @param port the port to transfer data over
 	 */
 	public GameServer(PApplet parent, int port) {
+		// Unfortunately the generic registerMethod is no longer supported. These will need to be called manually.
 		//parent.registerMethod("serverEvent", this);
+		//parent.registerMethod("disconnectEvent", this);
 		server = new Server(parent, port);
 	}
 	
@@ -53,13 +62,30 @@ public class GameServer {
 	}
 	
 	/**
-	 * Send a message to the specified client.
-	 * @param client the recipient of the message
-	 * @param message the message to send
+	 * This function is called automatically when a client disconnects.
+	 * We remove the client from our data structures if it hasn't already been.
+	 */
+	public void disconnectEvent(Client client) {
+		if (!disconnected.contains(client.hashCode())) {
+			// Get the clientId from the client
+			Entry<Integer, Client> clientAndId = clients.entrySet().stream()
+					.filter(entry -> Objects.equals(entry.getValue(), client))
+					.findFirst().orElse(null);
+			if (clientAndId != null) {
+				int clientId = clientAndId.getKey();
+			    disconnect(clientId);
+			}
+		}
+	}
+	
+	/**
+	 * Send data to the specified client.
+	 * @param client the recipient of the data
+	 * @param data the message to send
 	 */
 	private void send(Client client, JSONObject data) {
 		String messageStr = data.toString();
-		client.write(messageStr);
+		client.write(messageStr + SEP);
 	}
 	
 	/**
@@ -68,7 +94,7 @@ public class GameServer {
 	 * @return JSONObject an object containing the client's data
 	 */
 	private JSONObject getData(Client client) {
-		return JSONObject.parse(client.readString());
+		return JSONObject.parse(client.readStringUntil(SEP));
 	}
 	
 	/**
@@ -80,6 +106,9 @@ public class GameServer {
 		if (data.hasKey("action")) {
 			JSONObject response; 
 			switch (data.getString("action")) {
+			case "disconnect":
+				disconnect(data.getInt("clientId"));
+				return; // Client is disconnecting, so no response
 			case "registerRoom":
 				response = registerRoom(data.getInt("capacity"));
 				break;
@@ -108,6 +137,22 @@ public class GameServer {
 			send(client, response);
 		}
 		throw new RuntimeException("Data sent to server must have an 'action' attribute.");
+	}
+	
+	/**
+	 * Remove the client from our data structures, including rooms.
+	 * @param clientId the id of the client to disconnect
+	 */
+	private void disconnect(int clientId) {
+		Client client = clients.remove(clientId);
+		if (client != null) {
+			client.stop();
+			disconnected.add(client.hashCode());
+		}
+		Integer roomId = clientIdToRoomId.remove(clientId);
+		if (roomId != null) {
+			rooms.get(roomId).removeClient(clientId);
+		}
 	}
 	
 	/**
