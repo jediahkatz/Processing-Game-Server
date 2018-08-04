@@ -24,7 +24,6 @@ public class Server {
 	 * 
 	 * @param parent the current sketch (this)
 	 * @param port the port to transfer data over
-	 * @param roomCapacity the maximum number of clients in a room
 	 */
 	public Server(PApplet parent, int port) {
 		parent.registerMethod("dispose", this);
@@ -33,6 +32,9 @@ public class Server {
 		this.server = new processing.net.Server(parent, port);
 	}
 	
+	/**
+	 * Run the server.
+	 */
 	public void run() {
 		processing.net.Client client = server.available();
 		while (client != null) {
@@ -42,10 +44,17 @@ public class Server {
 		}
 	}
 	
+	/**
+	 * Stop the server when this sketch is closed.
+	 */
 	public void dispose() {
 		server.stop();
 	}
 	
+	/**
+	 * This function is called automatically when a client connects to the server.
+	 * We automatically register the client.
+	 */
 	public void serverEvent(processing.net.Server server, processing.net.Client client) {
 		JSONObject response = registerClient(client);
 		send(client, response);
@@ -72,8 +81,8 @@ public class Server {
 	
 	/**
 	 * Take action based on the content of the received data.
-	 * @param client
-	 * @param message
+	 * @param client the client that sent the data
+	 * @param data the received data 
 	 */
 	private void handleData(processing.net.Client client, JSONObject data) {
 		if (data.hasKey("action")) {

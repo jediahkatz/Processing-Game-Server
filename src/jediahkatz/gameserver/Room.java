@@ -30,7 +30,7 @@ public class Room {
 		if (isFull()) {
 			throw new IllegalStateException("Room full");
 		}
-		// TODO
+		clientIds.add(clientId);
 	}
 	
 	/**
