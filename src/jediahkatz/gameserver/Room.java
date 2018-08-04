@@ -23,10 +23,10 @@ public class Room {
 	}
 	
 	/**
-	 * Add a Client to this room.
+	 * Add a client to this room.
 	 * @throws IllegalStateException if the room is full
 	 */
-	public void addClient() {
+	public void addClient(int clientId) {
 		if (isFull()) {
 			throw new IllegalStateException("Room full");
 		}

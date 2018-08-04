@@ -35,7 +35,11 @@ public class Server {
 	
 	public void run() {
 		processing.net.Client client = server.available();
-		JSONObject message = getData(client);
+		while (client != null) {
+			JSONObject data = getData(client);
+			handleData(client, data);
+			client = server.available();
+		}
 	}
 	
 	public void dispose() {
@@ -144,8 +148,27 @@ public class Server {
 	 * @return the response to send to the client
 	 */
 	private JSONObject joinRoom(int clientId, int roomId) {
-		// TODO
-		return null;
+		JSONObject response = new JSONObject();
+		response.setString("action", "joinRoom");
+		
+		if (clientIdToRoomId.containsKey(clientId)) {
+			response.setString("status", "error");
+			response.setInt("errorCode", ErrorCode.ALREADY_IN_ROOM.ordinal());
+		} else {
+			Room room = rooms.get(roomId);
+			if (room == null) {
+				response.setString("status", "error");
+				response.setInt("errorCode", ErrorCode.ROOM_NOT_FOUND.ordinal());
+			} else if (room.isFull()) {
+				response.setString("status", "error");
+				response.setInt("errorCode", ErrorCode.ROOM_FULL.ordinal());
+			} else {
+				response.setString("status", "success");
+				room.addClient(clientId);
+			}
+		}
+		
+		return response;
 	}
 	
 	/**
