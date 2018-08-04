@@ -3,14 +3,15 @@ package jediahkatz.gameserver;
 import java.util.HashMap;
 
 import processing.core.*;
+import processing.net.*;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
 
 /** A multiplayer game server.
  * @author jediahkatz
  */
-public class Server {
-	private processing.net.Server server;
+public class GameServer {
+	private Server server;
 	// Incrementing unique identifier to assign to clients and rooms
 	private int clientId = 0;
 	private int roomId = 0;
@@ -25,18 +26,16 @@ public class Server {
 	 * @param parent the current sketch (this)
 	 * @param port the port to transfer data over
 	 */
-	public Server(PApplet parent, int port) {
-		parent.registerMethod("dispose", this);
-		parent.registerMethod("serverevent", this);
-		
-		this.server = new processing.net.Server(parent, port);
+	public GameServer(PApplet parent, int port) {
+		//parent.registerMethod("serverEvent", this);
+		server = new Server(parent, port);
 	}
 	
 	/**
 	 * Run the server.
 	 */
 	public void run() {
-		processing.net.Client client = server.available();
+		Client client = server.available();
 		while (client != null) {
 			JSONObject data = getData(client);
 			handleData(client, data);
@@ -45,17 +44,10 @@ public class Server {
 	}
 	
 	/**
-	 * Stop the server when this sketch is closed.
-	 */
-	public void dispose() {
-		server.stop();
-	}
-	
-	/**
 	 * This function is called automatically when a client connects to the server.
 	 * We automatically register the client.
 	 */
-	public void serverEvent(processing.net.Server server, processing.net.Client client) {
+	public void serverEvent(Server server, Client client) {
 		JSONObject response = registerClient(client);
 		send(client, response);
 	}
@@ -65,7 +57,7 @@ public class Server {
 	 * @param client the recipient of the message
 	 * @param message the message to send
 	 */
-	private void send(processing.net.Client client, JSONObject data) {
+	private void send(Client client, JSONObject data) {
 		String messageStr = data.toString();
 		client.write(messageStr);
 	}
@@ -75,7 +67,7 @@ public class Server {
 	 * @param client the client with available data as a JSON string
 	 * @return JSONObject an object containing the client's data
 	 */
-	private JSONObject getData(processing.net.Client client) {
+	private JSONObject getData(Client client) {
 		return JSONObject.parse(client.readString());
 	}
 	
@@ -84,7 +76,7 @@ public class Server {
 	 * @param client the client that sent the data
 	 * @param data the received data 
 	 */
-	private void handleData(processing.net.Client client, JSONObject data) {
+	private void handleData(Client client, JSONObject data) {
 		if (data.hasKey("action")) {
 			JSONObject response; 
 			switch (data.getString("action")) {
@@ -123,7 +115,7 @@ public class Server {
 	 * @param client the client to register
 	 * @return the response to send to the client, containing "clientId" key
 	 */
-	private JSONObject registerClient(processing.net.Client client) {
+	private JSONObject registerClient(Client client) {
 		JSONObject response = new JSONObject();
 		response.setString("action", "registerClient");
 		response.setString("status", "success");

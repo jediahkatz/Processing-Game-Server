@@ -2,15 +2,16 @@ package jediahkatz.gameserver;
 
 import java.io.IOException;
 
+import processing.net.*;
 import processing.core.*;
 import processing.data.JSONObject;
 
 /** A client that can connect to a server and send messages.
  * @author jediahkatz
  */
-public class Client {
+public class GameClient {
 	private final int id;
-	private processing.net.Client client;
+	private Client client;
 	
 	/**
 	 * 
@@ -18,13 +19,18 @@ public class Client {
 	 * @param host the hostname of the server
 	 * @param port the port to transfer data over
 	 */
-	public Client(PApplet parent, String host, int port) throws IOException {
-		client = new processing.net.Client(parent, host, port);
-		JSONObject response = getData();
+	public GameClient(PApplet parent, String host, int port) {
+		client = new Client(parent, host, port);
+		JSONObject response;
+		// We can't do anything until we've gotten our ID.
+		do {
+			response = getData();
+		} while (response == null);
+		
 		if (response.getString("action").equals("registerClient") && response.getString("status").equals("success")) {
 			id = response.getInt("clientId");
 		} else {
-			throw new IOException("Failed to register this client with the server.");
+			throw new RuntimeException("Failed to register this client with the server.");
 		}
 	}
 	
@@ -55,7 +61,14 @@ public class Client {
 	 * @return JSONObject an object containing the client's data
 	 */
 	private JSONObject getData() {
-		return JSONObject.parse(client.readString());
+		if (client.available() > 0) {
+			try {
+				return JSONObject.parse(client.readString());
+			} catch (RuntimeException e) {
+				// Invalid JSON string
+			}
+		}
+		return null;
 	}
 		
 }

@@ -13,10 +13,10 @@ public class Room {
 	private final int capacity;
 	private int size = 0;
 	private JSONObject attributes = new JSONObject();
-	private Server server;
+	private GameServer server;
 	private HashSet<Integer> clientIds = new HashSet<>();
 	
-	public Room(Server server, int roomId, int capacity) {
+	public Room(GameServer server, int roomId, int capacity) {
 		this.server = server;
 		this.id = roomId;
 		this.capacity = capacity;
