@@ -7,4 +7,6 @@ enum ErrorCode {
 	ROOM_FULL,
 	/** Attempting to join a room while already in a room **/
 	ALREADY_IN_ROOM,
+	/** No client exists with the specified id **/
+	CLIENT_NOT_FOUND,
 }

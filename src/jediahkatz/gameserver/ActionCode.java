@@ -1,6 +1,8 @@
 package jediahkatz.gameserver;
 
 enum ActionCode {
+	/** Register a client with the server and assign it an id. **/
+	REGISTER_CLIENT,
 	/** Disconnect the client from the server. **/
 	DISCONNECT,
 	/** Create a new room. **/
@@ -11,7 +13,7 @@ enum ActionCode {
 	LEAVE_ROOM,
 	/** Add a client to an arbitrary room or create a new one if all rooms are full. **/
 	AUTOJOIN_ROOM,
-	/** Get a RoomInfo object containing data about a room. **/
+	/** Get a RoomInfo object containing data about a room, including attributes. **/
 	GET_ROOM_INFO,
 	/** Get an array containing the RoomInfo objects for each room. **/
 	GET_ROOMS_INFO,
@@ -23,6 +25,8 @@ enum ActionCode {
 	SET_SERVER_ATTRIBUTES,
 	/** Add a single attribute to the server. **/
 	PUT_SERVER_ATTRIBUTE,
+	/** Get the server attributes. **/
+	GET_SERVER_ATTRIBUTES,
 	/** Send a message to some clients, possibly in a different room. **/
 	SEND_MESSAGE,
 	/** Send a message to all clients in the same room. **/

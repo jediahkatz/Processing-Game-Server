@@ -122,6 +122,9 @@ public class GameServer {
 			case JOIN_ROOM:
 				response = joinRoom(data.getInt("clientId"), data.getInt("roomId"));
 				break;
+			case LEAVE_ROOM:
+				response = leaveRoom(data.getInt("clientId"));
+				break;
 			case SET_ROOM_ATTRIBUTES:
 				response = setRoomAttributes(data.getInt("roomId"), data.getJSONObject("attributes"));
 				break;
@@ -167,8 +170,8 @@ public class GameServer {
 	 */
 	private JSONObject registerClient(Client client) {
 		JSONObject response = new JSONObject();
-		response.setString("action", "registerClient");
-		response.setString("status", "success");
+		setAction(response, ActionCode.REGISTER_CLIENT);
+		setSuccess(response);
 		Integer id = clientId++;
 		response.setInt("clientId", id);
 		clients.put(id, client);
@@ -182,20 +185,14 @@ public class GameServer {
 	 */
 	private JSONObject registerRoom(int capacity) {
 		JSONObject response = new JSONObject();
-		response.setString("action", "registerRoom");
-		response.setString("status", "success");
+		setAction(response, ActionCode.REGISTER_ROOM);
+		setSuccess(response);
 		int id = roomId++;
 		response.setInt("roomId", id);
 		
 		Room room = new Room(this, id, capacity);
 		rooms.put(id, room);
 		return response;
-	}
-	
-	private JSONObject getRoomIds() {
-		JSONObject response = new JSONObject();
-		response.setString("action", "getRoomIds");
-		return null;
 	}
 	
 	/**
@@ -206,21 +203,18 @@ public class GameServer {
 	 */
 	private JSONObject joinRoom(int clientId, int roomId) {
 		JSONObject response = new JSONObject();
-		response.setString("action", "joinRoom");
+		setAction(response, ActionCode.JOIN_ROOM);
 		
 		if (clientIdToRoomId.containsKey(clientId)) {
-			response.setString("status", "error");
-			response.setInt("errorCode", ErrorCode.ALREADY_IN_ROOM.ordinal());
+			setError(response, ErrorCode.ALREADY_IN_ROOM);
 		} else {
 			Room room = rooms.get(roomId);
 			if (room == null) {
-				response.setString("status", "error");
-				response.setInt("errorCode", ErrorCode.ROOM_NOT_FOUND.ordinal());
+				setError(response, ErrorCode.ROOM_NOT_FOUND);
 			} else if (room.isFull()) {
-				response.setString("status", "error");
-				response.setInt("errorCode", ErrorCode.ROOM_FULL.ordinal());
+				setError(response, ErrorCode.ROOM_FULL);
 			} else {
-				response.setString("status", "success");
+				setSuccess(response);
 				room.addClient(clientId);
 			}
 		}
@@ -229,23 +223,15 @@ public class GameServer {
 	}
 	
 	/**
-	 * Get the attributes of a room.
-	 * @param roomId the id of the room
-	 * @return the response to send to the client, containing "attributes" key
+	 * Remove a client from its room.
+	 * @param clientId the id of the client to remove from its room
+	 * @return the response to send to the client
 	 */
-	private JSONObject getRoomAttributes(int roomId) {
+	private JSONObject leaveRoom(int clientId) {
 		JSONObject response = new JSONObject();
-		response.setString("action", "getRoomAttributes");
-
-		Room room = rooms.get(roomId);
-		if (room != null) {
-			response.setString("status", "success");
-			response.setJSONObject("attributes", room.getAttributes());
-		} else {
-			response.setString("status", "error");
-			response.setInt("errorCode", ErrorCode.ROOM_NOT_FOUND.ordinal());
-		}
+		setAction(response, ActionCode.LEAVE_ROOM);
 		
+		//TODO
 		return response;
 	}
 	
@@ -257,15 +243,14 @@ public class GameServer {
 	 */
 	private JSONObject setRoomAttributes(int roomId, JSONObject attributes) {
 		JSONObject response = new JSONObject();
-		response.setString("action", "setRoomAttributes");
+		setAction(response, ActionCode.SET_ROOM_ATTRIBUTES);
 
 		Room room = rooms.get(roomId);
 		if (room != null) {
 			room.setAttributes(attributes);
-			response.setString("status", "success");
+			setSuccess(response);
 		} else {
-			response.setString("status", "error");
-			response.setInt("errorCode", ErrorCode.ROOM_NOT_FOUND.ordinal());
+			setError(response, ErrorCode.ROOM_NOT_FOUND);
 		}
 		
 		return response;
@@ -280,11 +265,11 @@ public class GameServer {
 	 */
 	private JSONObject putRoomAttribute(int roomId, String key, Object value) {
 		JSONObject response = new JSONObject();
-		response.setString("action", "putRoomAttribute");
+		setAction(response, ActionCode.PUT_ROOM_ATTRIBUTE);
 
 		Room room = rooms.get(roomId);
 		if (room != null) {
-			response.setString("status", "success");
+			setSuccess(response);
 			// This is the only way to figure out what kind of object was passed in
 			if (value instanceof Integer) {
 				room.putAttribute(key, (int) value);
@@ -304,8 +289,7 @@ public class GameServer {
 				room.putAttribute(key, (long) value);
 			}
 		} else {
-			response.setString("status", "error");
-			response.setInt("errorCode", ErrorCode.ROOM_NOT_FOUND.ordinal());
+			setError(response, ErrorCode.ROOM_NOT_FOUND);
 		}
 		
 		return response;
@@ -319,8 +303,8 @@ public class GameServer {
 	private JSONObject setServerAttributes(JSONObject attributes) {
 		JSONObject response = new JSONObject();
 		this.attributes = attributes;
-		response.setString("action", "setServerAttributes");
-		response.setString("status", "success");
+		setAction(response, ActionCode.SET_SERVER_ATTRIBUTES);
+		setSuccess(response);
 		return response;
 	}
 	
@@ -332,8 +316,8 @@ public class GameServer {
 	 */
 	private JSONObject putServerAttribute(String key, Object value) {
 		JSONObject response = new JSONObject();
-		response.setString("action", "putServerAttribute");
-		response.setString("status", "success");
+		setAction(response, ActionCode.PUT_SERVER_ATTRIBUTE);
+		setSuccess(response);
 		// This is the only way to figure out what kind of object was passed in
 		if (value instanceof Integer) {
 			attributes.setInt(key, (int) value);
@@ -354,6 +338,22 @@ public class GameServer {
 		}
 		
 		return response;
+	}
+	
+	/** Helper method to set action from enum on data object. **/
+	private void setAction(JSONObject data, ActionCode action) {
+		data.setString("action", action.name());
+	}
+	
+	/** Helper method to set status as success on data object. **/
+	private void setSuccess(JSONObject data) {
+		data.setString("status", "success");
+	}
+	
+	/** Helper method to set status as error and set error from enum on data object. **/
+	private void setError(JSONObject data, ErrorCode error) {
+		data.setString("status", "error");
+		data.setString("errorCode", error.name());
 	}
 }
 
