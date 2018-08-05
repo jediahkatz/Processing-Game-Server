@@ -4,14 +4,26 @@ import processing.net.*;
 import processing.core.*;
 import processing.data.JSONObject;
 
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeoutException;
+
 /** A client that can connect to a server and send messages.
  * @author jediahkatz
  */
 public class GameClient {
 	// Beep character - data separator
 	private final char SEP = (char) 7;
+	// The maximum time in msec to wait for data before throwing an exception
+	private final int TIMEOUT = 1000;
+	private final DataFetcher thread;
+	
 	private final int id;
 	private Client client;
+	// Maps action to a buffer containing data objects for those actions
+	private Map<String, Queue<JSONObject>> dataBuffer = new ConcurrentHashMap<>();
 	
 	/**
 	 * 
@@ -25,13 +37,13 @@ public class GameClient {
 		if (!connected()) {
 			throw new RuntimeException("Failed to connect to the server.");
 		}
-		JSONObject response; 
-		do {
-			response = getData();
-		} while (response == null);
 		
-		if (response.getString("action").equals("registerClient") 
-				&& response.getString("status").equals("success")) {
+		// Start a new thread for this client to fetch data
+		thread = new DataFetcher(this);
+		new Thread(thread).start();
+				
+		JSONObject response = waitForFirstAction("registerClient");
+		if (response.getString("status").equals("success")) {
 			id = response.getInt("clientId");
 		} else {
 			throw new RuntimeException("Failed to register this client with the server.");
@@ -55,6 +67,7 @@ public class GameClient {
 		request.setString("action", "disconnect");
 		request.setInt("clientId", id);
 		send(request);
+		thread.stop();
 		client.stop();
 	}
 	
@@ -80,25 +93,74 @@ public class GameClient {
 		request.setString("action", "registerRoom");
 		request.setInt("capacity", capacity);
 		send(request);
-		JSONObject response = getData();
-		return response.getInt("roomId");
+		JSONObject response = waitForFirstAction("registerRoom");
+		if (response.getString("status").equals("success")) {
+			return response.getInt("roomId");
+		}
+		throw new RuntimeException("Failed to create new room.");
 	}
 	
 	/**
-	 * Return the client's data as a JSONObject.
-	 * @param client the client with available data as a JSON string
-	 * @return JSONObject an object containing the client's data
+	 * Fetch new data for this client and put it into the buffer.
 	 */
-	private JSONObject getData() {
+	private void fetchData() {
 		if (client.available() > 0) {
 			try {
 				String s = client.readStringUntil(SEP);
-				return JSONObject.parse(s);
+				JSONObject data = JSONObject.parse(s);
+				if (data.hasKey("action")) {
+					String action = data.getString("action");
+					appendAction(action, data);
+				}
 			} catch (RuntimeException e) {
 				// Invalid JSON string
 			}
 		}
+	}
+	
+	/**
+	 * Add an action to the buffer.
+	 * @param action the name of the action
+	 * @param data the action/response data
+	 */
+	private void appendAction(String action, JSONObject data) {
+		Queue<JSONObject> buffer = dataBuffer.get(action);
+		if (buffer == null) {
+			buffer = new ConcurrentLinkedQueue<>();
+			dataBuffer.put(action, buffer);
+		}
+		buffer.add(data);
+	}
+	
+	/**
+	 * Get the first data object received with the given action type, and remove it from the buffer.
+	 * @param action the type of action to search for
+	 * @returns the first data received with given action type, or null if none exists
+	 */
+	private JSONObject getFirstAction(String action) {
+		Queue<JSONObject> buffer = dataBuffer.get(action);
+		if (buffer != null) {
+			return buffer.poll();
+		}
 		return null;
+	}
+	
+	/**
+	 * Get the first data object received with the given action type, and remove it from the buffer.
+	 * If no such object exists, this method will wait until one is received or until it times out.
+	 * @param action the type of action to search for
+	 * @returns the first data received with given action type
+	 */
+	private JSONObject waitForFirstAction(String action) {
+		long startTime = System.currentTimeMillis();
+		JSONObject data;
+		do {
+			if (System.currentTimeMillis() - startTime >= TIMEOUT) {
+				throw new RuntimeException("Timed out waiting for " + action + " action");
+			}
+			data = getFirstAction(action);
+		} while (data == null);
+		return data;
 	}
 
 	/**
@@ -108,6 +170,39 @@ public class GameClient {
 	private void send(JSONObject data) {
 		String messageStr = data.toString();
 		client.write(messageStr + SEP);
+	}
+	
+	/**
+	 * Runs in its own thread and continuously fetches new data for the client.
+	 * @author jediahkatz
+	 */
+	class DataFetcher implements Runnable {
+		// How many ms to sleep between fetches
+		private final int SLEEP_TIME = 10;
+		private volatile boolean shutdown = false;
+		private GameClient client;
+		
+		DataFetcher(GameClient client) {
+			this.client = client;
+		}
+
+		@Override
+		public void run() {
+			while (true) {
+				client.fetchData();
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+				}
+				if (shutdown) {
+					return;
+				}
+			}
+		}
+		
+		public void stop() {
+			shutdown = true;
+		}
 	}
 		
 }
