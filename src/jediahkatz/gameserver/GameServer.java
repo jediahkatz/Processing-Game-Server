@@ -131,6 +131,9 @@ public class GameServer {
 			case GET_ROOM_INFO:
 				response = getRoomInfo(data.getInt("roomId"));
 				break;
+			case GET_ROOMS_INFO:
+				response = getRoomsInfo();
+				break;
 			case SET_ROOM_ATTRIBUTES:
 				response = setRoomAttributes(data.getInt("roomId"), data.getJSONObject("attributes"));
 				break;
@@ -299,6 +302,27 @@ public class GameServer {
 		} else {
 			setError(response, ErrorCode.ROOM_NOT_FOUND);
 		}
+		return response;
+	}
+	
+	/**
+	 * Get info about all active rooms.
+	 * @return the response to send to the client
+	 */
+	private JSONObject getRoomsInfo() {
+		JSONObject response = new JSONObject();
+		setAction(response, ActionCode.GET_ROOMS_INFO);
+		setSuccess(response);
+		
+		JSONArray roomsInfo = new JSONArray();
+		
+		for (Room room : rooms.values()) {
+			JSONObject roomInfo = new JSONObject();
+			addRoomInfo(roomInfo, room);
+			roomsInfo.append(roomInfo);
+		}
+		
+		response.setJSONArray("roomsInfo", roomsInfo);
 		return response;
 	}
 	
