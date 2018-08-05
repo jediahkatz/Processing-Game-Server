@@ -125,6 +125,9 @@ public class GameServer {
 			case LEAVE_ROOM:
 				response = leaveRoom(data.getInt("clientId"));
 				break;
+			case AUTOJOIN_ROOM:
+				response = autojoinRoom(data.getInt("clientId"), data.getInt("capacity"));
+				break;
 			case SET_ROOM_ATTRIBUTES:
 				response = setRoomAttributes(data.getInt("roomId"), data.getJSONObject("attributes"));
 				break;
@@ -215,11 +218,17 @@ public class GameServer {
 				setError(response, ErrorCode.ROOM_FULL);
 			} else {
 				setSuccess(response);
-				room.addClient(clientId);
+				addClientToRoom(clientId, room);
 			}
 		}
 		
 		return response;
+	}
+	
+	/** Helper method to add client to room. **/
+	private void addClientToRoom(int clientId, Room room) {
+		room.addClient(clientId);
+		clientIdToRoomId.put(clientId, room.id());
 	}
 	
 	/**
@@ -238,6 +247,45 @@ public class GameServer {
 			room.removeClient(clientId);
 		}
 		return response;
+	}
+	
+
+	/**
+	 * Join an arbitrary room, or create a new room if all rooms are full.
+	 * @param clientId the id of the client to join a room
+	 * @param capacity the capacity of a new room, if one is created
+	 * @return the response to send to the client, containing info about the room joined
+	 */
+	private JSONObject autojoinRoom(int clientId, int capacity) {
+		JSONObject response = new JSONObject();
+		setAction(response, ActionCode.AUTOJOIN_ROOM);
+		setSuccess(response);
+		
+		// Add to first room that isn't full
+		for (Room room : rooms.values()) {
+			if (!room.isFull()) {
+				room.addClient(clientId);
+				addRoomInfo(response, room);
+				return response;
+			}
+		}
+		
+		// If all rooms full, then make a new one
+		int roomId = nextRoomId++;
+		Room room = new Room(this, roomId, capacity);
+		rooms.put(roomId, room);
+		addClientToRoom(clientId, room);
+		addRoomInfo(response, room);
+		return response;
+		
+	}
+	
+	/** Helper method to add room info to a response. **/
+	private void addRoomInfo(JSONObject response, Room room) {
+		response.setInt("roomId", room.id());
+		response.setInt("capacity", room.capacity());
+		response.setInt("size", room.size());
+		response.setJSONObject("attributes", room.getAttributes());
 	}
 	
 	/**

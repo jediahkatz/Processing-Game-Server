@@ -40,14 +40,21 @@ class Room {
 	}
 	
 	/**
-	 * Returns the number of clients currently in this room.
+	 * Get the unique id of this room.
+	 */
+	public int id() {
+		return id;
+	}
+	
+	/**
+	 * Get the number of clients currently in this room.
 	 */
 	public int size() {
 		return clientIds.size();
 	}
 	
 	/**
-	 * Return the maximum number of clients that can be in this room.
+	 * Get the maximum number of clients that can be in this room.
 	 */
 	public int capacity() {
 		return capacity;
@@ -61,7 +68,7 @@ class Room {
 	}
 	
 	/**
-	 * Return the attributes associated with this room.
+	 * Get the attributes associated with this room.
 	 */
 	public JSONObject getAttributes() {
 		return attributes;
