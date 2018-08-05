@@ -18,8 +18,8 @@ public class GameServer {
 	private final char SEP = (char) 7;
 	private Server server;
 	// Incrementing unique identifier to assign to clients and rooms
-	private int clientId = 0;
-	private int roomId = 0;
+	private int nextClientId = 0;
+	private int nextRoomId = 0;
 	private JSONObject attributes = new JSONObject();
 	// Data structures storing rooms/clients
 	private HashMap<Integer, Room> rooms = new HashMap<>();
@@ -172,7 +172,7 @@ public class GameServer {
 		JSONObject response = new JSONObject();
 		setAction(response, ActionCode.REGISTER_CLIENT);
 		setSuccess(response);
-		Integer id = clientId++;
+		Integer id = nextClientId++;
 		response.setInt("clientId", id);
 		clients.put(id, client);
 		return response;
@@ -187,7 +187,7 @@ public class GameServer {
 		JSONObject response = new JSONObject();
 		setAction(response, ActionCode.REGISTER_ROOM);
 		setSuccess(response);
-		int id = roomId++;
+		int id = nextRoomId++;
 		response.setInt("roomId", id);
 		
 		Room room = new Room(this, id, capacity);
@@ -230,8 +230,13 @@ public class GameServer {
 	private JSONObject leaveRoom(int clientId) {
 		JSONObject response = new JSONObject();
 		setAction(response, ActionCode.LEAVE_ROOM);
+		setSuccess(response);
 		
-		//TODO
+		Integer roomId = clientIdToRoomId.get(clientId);
+		if (roomId != null) {
+			Room room = rooms.get(roomId);
+			room.removeClient(clientId);
+		}
 		return response;
 	}
 	
