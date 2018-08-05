@@ -8,7 +8,7 @@ import processing.data.JSONObject;
 /** A room that can hold up to a fixed number of clients.
  * @author jediahkatz
  */
-public class Room {
+class Room {
 	private final int id;
 	private final int capacity;
 	private JSONObject attributes = new JSONObject();

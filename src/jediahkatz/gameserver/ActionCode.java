@@ -18,11 +18,11 @@ enum ActionCode {
 	/** Set the attributes for a room with a new JSONObject. **/
 	SET_ROOM_ATTRIBUTES,
 	/** Add a single attribute to a room. **/
-	PUT_ROOM_ATTRBUTE,
+	PUT_ROOM_ATTRIBUTE,
 	/** Set the attributes for the server with a new JSONObject. **/
 	SET_SERVER_ATTRIBUTES,
 	/** Add a single attribute to the server. **/
-	PUT_SERVER_ATTRBUTE,
+	PUT_SERVER_ATTRIBUTE,
 	/** Send a message to some clients, possibly in a different room. **/
 	SEND_MESSAGE,
 	/** Send a message to all clients in the same room. **/

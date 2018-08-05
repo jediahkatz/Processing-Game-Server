@@ -104,39 +104,44 @@ public class GameServer {
 	 */
 	private void handleData(Client client, JSONObject data) {
 		if (data.hasKey("action")) {
-			JSONObject response; 
-			switch (data.getString("action")) {
-			case "disconnect":
+			JSONObject response;
+			ActionCode action;
+			try {
+				action = ActionCode.valueOf(data.getString("action"));
+			} catch (RuntimeException e) {
+				//throw new RuntimeException("Invalid action: " + data.getString("action"));
+				return;
+			}
+			switch (action) {
+			case DISCONNECT:
 				disconnect(data.getInt("clientId"));
 				return; // Client is disconnecting, so no response
-			case "registerRoom":
+			case REGISTER_ROOM:
 				response = registerRoom(data.getInt("capacity"));
 				break;
-			case "joinRoom":
+			case JOIN_ROOM:
 				response = joinRoom(data.getInt("clientId"), data.getInt("roomId"));
 				break;
-			case "getRoomAttributes":
-				response = getRoomAttributes(data.getInt("roomId"));
-				break;
-			case "setRoomAttributes":
+			case SET_ROOM_ATTRIBUTES:
 				response = setRoomAttributes(data.getInt("roomId"), data.getJSONObject("attributes"));
 				break;
-			case "putRoomAttribute":
+			case PUT_ROOM_ATTRIBUTE:
 				response = putRoomAttribute(data.getInt("roomId"), data.getString("key"), data.get("value"));
 				break;
-			case "setServerAttributes":
+			case SET_SERVER_ATTRIBUTES:
 				response = setServerAttributes(data.getJSONObject("attributes"));
 				break;
-			case "putServerAttribute":
+			case PUT_SERVER_ATTRIBUTE:
 				response = putServerAttribute(data.getString("key"), data.get("value"));
 				break;
 			default:
-				throw new RuntimeException("Invalid action: " + data.getString("action"));
+				//throw new RuntimeException("Invalid action: " + data.getString("action"));
+				return;
 			}
 			
 			send(client, response);
 		}
-		throw new RuntimeException("Data sent to server must have an 'action' attribute.");
+		//throw new RuntimeException("Data sent to server must have an 'action' attribute.");
 	}
 	
 	/**
@@ -185,6 +190,12 @@ public class GameServer {
 		Room room = new Room(this, id, capacity);
 		rooms.put(id, room);
 		return response;
+	}
+	
+	private JSONObject getRoomIds() {
+		JSONObject response = new JSONObject();
+		response.setString("action", "getRoomIds");
+		return null;
 	}
 	
 	/**

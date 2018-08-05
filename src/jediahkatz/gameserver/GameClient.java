@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeoutException;
 
 /** A client that can connect to a server and send messages.
  * @author jediahkatz
@@ -79,7 +78,7 @@ public class GameClient {
 	 * Get the unique identifier for this client.
 	 * @return the client id
 	 */
-	public int getId() {
+	public int id() {
 		return id;
 	}
 	
@@ -156,7 +155,7 @@ public class GameClient {
 		JSONObject data;
 		do {
 			if (System.currentTimeMillis() - startTime >= TIMEOUT) {
-				throw new RuntimeException("Timed out waiting for " + action + " action");
+				throw new RuntimeException("Timed out waiting for action: " + action);
 			}
 			data = getFirstAction(action);
 		} while (data == null);
