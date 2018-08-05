@@ -128,6 +128,9 @@ public class GameServer {
 			case AUTOJOIN_ROOM:
 				response = autojoinRoom(data.getInt("clientId"), data.getInt("capacity"));
 				break;
+			case GET_ROOM_INFO:
+				response = getRoomInfo(data.getInt("roomId"));
+				break;
 			case SET_ROOM_ATTRIBUTES:
 				response = setRoomAttributes(data.getInt("roomId"), data.getJSONObject("attributes"));
 				break;
@@ -278,6 +281,25 @@ public class GameServer {
 		addRoomInfo(response, room);
 		return response;
 		
+	}
+	
+	/**
+	 * Get info about a room.
+	 * @param roomId the id of the room to get info about
+	 * @return the response to send to the client
+	 */
+	private JSONObject getRoomInfo(int roomId) {
+		JSONObject response = new JSONObject();
+		setAction(response, ActionCode.GET_ROOM_INFO);
+		
+		Room room = rooms.get(roomId);
+		if (room != null) {
+			setSuccess(response);
+			addRoomInfo(response, room);
+		} else {
+			setError(response, ErrorCode.ROOM_NOT_FOUND);
+		}
+		return response;
 	}
 	
 	/** Helper method to add room info to a response. **/
