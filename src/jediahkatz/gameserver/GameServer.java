@@ -146,6 +146,9 @@ public class GameServer {
 			case PUT_SERVER_ATTRIBUTE:
 				response = putServerAttribute(data.getString("key"), data.get("value"));
 				break;
+			case GET_SERVER_ATTRIBUTES:
+				response = getServerAttributes();
+				break;
 			default:
 				//throw new RuntimeException("Invalid action: " + data.getString("action"));
 				return;
@@ -436,6 +439,18 @@ public class GameServer {
 			attributes.setLong(key, (long) value);
 		}
 		
+		return response;
+	}
+	
+	/**
+	 * Get the attributes associated with this server.
+	 * @return the response to send to the client
+	 */
+	private JSONObject getServerAttributes() {
+		JSONObject response = new JSONObject();
+		setAction(response, ActionCode.GET_SERVER_ATTRIBUTES);
+		setSuccess(response);
+		response.setJSONObject("attributes", attributes);
 		return response;
 	}
 	
