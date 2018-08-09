@@ -15,7 +15,7 @@ public class RoomInfo {
 	private final JSONObject attributes;
 	private final int[] clientIds;
 	
-	public RoomInfo(int id, int capacity, int size, JSONObject attributes, int[] clientIds) {
+	RoomInfo(int id, int capacity, int size, JSONObject attributes, int[] clientIds) {
 		this.id = id;
 		this.capacity = capacity;
 		this.size = size;
