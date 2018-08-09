@@ -2,6 +2,7 @@ package jediahkatz.gameserver;
 
 import processing.net.*;
 import processing.core.*;
+import processing.data.JSONArray;
 import processing.data.JSONObject;
 
 import java.util.Map;
@@ -187,7 +188,7 @@ public class GameClient {
 			case ALREADY_IN_ROOM: // This hopefully should never happen
 				throw new AlreadyInRoomException("Can't join a room while already in a room.");
 			default:
-				throw new RuntimeException("Failed to join room.");
+				throw new RuntimeException("Failed to autojoin a room.");
 			}
 		}
 		
@@ -198,8 +199,8 @@ public class GameClient {
 	
 	/**
 	 * Get info about a room.
-	 * @param roomId the unique id of the room to join
-	 * @return an object containing info about the room joined
+	 * @param roomId the unique id of the room to look up
+	 * @return an object containing info about the room
 	 * @throws NoSuchElementException if no room exists with the given id
 	 */
 	public RoomInfo getRoomInfo(int roomId) {
@@ -213,11 +214,33 @@ public class GameClient {
 			case ROOM_NOT_FOUND:
 				throw new AlreadyInRoomException("No room exists with id: " + roomId);
 			default:
-				throw new RuntimeException("Failed to join room.");
+				throw new RuntimeException("Failed to get room info.");
 			}
 		}
 		
 		return constructRoomInfo(response);
+	}
+	
+	
+	/**
+	 * Get info about all rooms on the server.
+	 * @return an array of objects containing info about the rooms
+	 */
+	public RoomInfo[] getRoomInfo() {
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.GET_ROOMS_INFO);
+		send(request);
+		JSONObject response = waitForFirstAction(ActionCode.GET_ROOMS_INFO);
+		if (response.getString("status").equals("error")) {
+			throw new RuntimeException("Failed to get rooms info.");
+		}
+		
+		JSONArray roomsInfo = response.getJSONArray("roomsInfo");
+		RoomInfo[] infoArray = new RoomInfo[roomsInfo.size()];
+		for (int i=0; i<infoArray.length; i++) {
+			infoArray[i] = constructRoomInfo(roomsInfo.getJSONObject(i));
+		}
+		return infoArray;
 	}
 		
 	/**
