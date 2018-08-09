@@ -459,24 +459,24 @@ public class GameServer {
 	
 	/**
 	 * Send a message to one or more clients.
-	 * @param recipientIds
-	 * @param message
-	 * @return
+	 * @param recipientIds an array containing the ids of all recipients
+	 * @param message the message text
 	 */
-	private JSONObject sendMessage(int senderId, JSONArray recipientIds, String message) {
-		JSONObject response = new JSONObject();
-		setAction(response, ActionCode.SEND_MESSAGE);
-		setSuccess(response);
-		
+	private void sendMessage(int senderId, JSONArray recipientIds, String message) {
 		for (int id : recipientIds.getIntArray()) {
 			sendTo(senderId, id, message);
 		}
-		return response;
 	}
 	
 	/** Helper method to send a message to a client. */
 	private void sendTo(int senderId, int recipientId, String message) {
-		
+		Client recipient = clients.get(recipientId);
+		if (recipient != null) {
+			JSONObject messageData = new JSONObject();
+			setAction(messageData, ActionCode.SEND_MESSAGE);
+			setSuccess(messageData);
+			send(recipient, messageData);
+		}
 	}
 	
 	/** Helper method to set action from enum on data object. **/
