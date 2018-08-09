@@ -195,6 +195,30 @@ public class GameClient {
 		this.roomId = info.id();
 		return info;
 	}
+	
+	/**
+	 * Get info about a room.
+	 * @param roomId the unique id of the room to join
+	 * @return an object containing info about the room joined
+	 * @throws NoSuchElementException if no room exists with the given id
+	 */
+	public RoomInfo getRoomInfo(int roomId) {
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.GET_ROOM_INFO);
+		request.setInt("roomId", roomId);
+		send(request);
+		JSONObject response = waitForFirstAction(ActionCode.GET_ROOM_INFO);
+		if (response.getString("status").equals("error")) {
+			switch (ErrorCode.valueOf(response.getString("error"))) {
+			case ROOM_NOT_FOUND:
+				throw new AlreadyInRoomException("No room exists with id: " + roomId);
+			default:
+				throw new RuntimeException("Failed to join room.");
+			}
+		}
+		
+		return constructRoomInfo(response);
+	}
 		
 	/**
 	 * Construct a RoomInfo object from the given data.
