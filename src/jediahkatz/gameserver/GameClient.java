@@ -5,6 +5,7 @@ import processing.core.*;
 import processing.data.JSONObject;
 
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -101,6 +102,33 @@ public class GameClient {
 			return response.getInt("roomId");
 		}
 		throw new RuntimeException("Failed to create new room.");
+	}
+	
+	/**
+	 * Join an existing room new room.
+	 * @param roomId the unique id of the room to join
+	 * @throws NoSuchElementException if no room exists with the given id
+	 * @throws RoomFullException if the room is already full
+	 * @throws AlreadyInRoomException if this client is currently in a room
+	 */
+	public void joinRoom(int roomId) {
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.REGISTER_ROOM);
+		request.setInt("roomId", roomId);
+		send(request);
+		JSONObject response = waitForFirstAction(ActionCode.REGISTER_ROOM);
+		if (response.getString("status").equals("error")) {
+			switch (ErrorCode.valueOf(response.getString("error"))) {
+			case ALREADY_IN_ROOM:
+				throw new AlreadyInRoomException("Can't join a room while already in a room.");
+			case ROOM_FULL:
+				throw new RoomFullException("Tried to join a room that is already full.");
+			case ROOM_NOT_FOUND:
+				throw new NoSuchElementException("No room exists with id: " + roomId);
+			default:
+				throw new RuntimeException("Failed to join room.");
+			}
+		}
 	}
 	
 	/**
@@ -212,6 +240,28 @@ public class GameClient {
 		
 		public void stop() {
 			shutdown = true;
+		}
+	}
+	
+	/**
+	 * Exception thrown when trying to join a full room.
+	 * @author jediahkatz
+	 */
+	@SuppressWarnings("serial")
+	public class RoomFullException extends IllegalStateException {
+		RoomFullException(String message) {
+			super(message);
+		};
+	}
+	
+	/**
+	 * Exception thrown when trying to join a room while already in a room.
+	 * @author jediahkatz
+	 */
+	@SuppressWarnings("serial")
+	public class AlreadyInRoomException extends IllegalStateException {
+		AlreadyInRoomException(String message) {
+			super(message);
 		}
 	}
 		
