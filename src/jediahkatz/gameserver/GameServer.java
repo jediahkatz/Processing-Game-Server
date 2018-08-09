@@ -149,6 +149,9 @@ public class GameServer {
 			case GET_SERVER_ATTRIBUTES:
 				response = getServerAttributes();
 				break;
+			case SEND_MESSAGE:
+				sendMessage(data.getInt("senderId"), data.getJSONArray("recipients"), data.getString("message"));
+				return; // No response when sending message
 			default:
 				//throw new RuntimeException("Invalid action: " + data.getString("action"));
 				return;
@@ -452,6 +455,28 @@ public class GameServer {
 		setSuccess(response);
 		response.setJSONObject("attributes", attributes);
 		return response;
+	}
+	
+	/**
+	 * Send a message to one or more clients.
+	 * @param recipientIds
+	 * @param message
+	 * @return
+	 */
+	private JSONObject sendMessage(int senderId, JSONArray recipientIds, String message) {
+		JSONObject response = new JSONObject();
+		setAction(response, ActionCode.SEND_MESSAGE);
+		setSuccess(response);
+		
+		for (int id : recipientIds.getIntArray()) {
+			sendTo(senderId, id, message);
+		}
+		return response;
+	}
+	
+	/** Helper method to send a message to a client. */
+	private void sendTo(int senderId, int recipientId, String message) {
+		
 	}
 	
 	/** Helper method to set action from enum on data object. **/
