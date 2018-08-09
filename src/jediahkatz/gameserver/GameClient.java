@@ -116,11 +116,12 @@ public class GameClient {
 	/**
 	 * Join an existing room new room.
 	 * @param roomId the unique id of the room to join
+	 * @return an object containing info about the room joined
 	 * @throws NoSuchElementException if no room exists with the given id
 	 * @throws RoomFullException if the room is already full
 	 * @throws AlreadyInRoomException if this client is currently in a room
 	 */
-	public void joinRoom(int roomId) {
+	public RoomInfo joinRoom(int roomId) {
 		if (this.roomId != null) {
 			throw new AlreadyInRoomException("Can't join a room while already in a room.");
 		}
@@ -144,6 +145,7 @@ public class GameClient {
 		}
 		
 		this.roomId = roomId;
+		return constructRoomInfo(response);
 	}
 	
 	/**
@@ -162,6 +164,15 @@ public class GameClient {
 				throw new RuntimeException("Failed to leave room.");
 			}
 		}
+	}
+		
+	/**
+	 * Construct a RoomInfo object from the given data.
+	 */
+	private RoomInfo constructRoomInfo(JSONObject data) {
+		int[] clientIds = data.getJSONArray("clientIds").getIntArray();
+		return new RoomInfo(data.getInt("roomId"), data.getInt("capacity"), data.getInt("size"), 
+				data.getJSONObject("attributes"), clientIds);
 	}
 	
 	/**

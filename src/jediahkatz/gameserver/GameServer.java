@@ -217,7 +217,7 @@ public class GameServer {
 	 * Add a client to a room.
 	 * @param clientId the id of the client to add to the room
 	 * @param roomId the id of the room to add the client to
-	 * @return the response to send to the client
+	 * @return the response to send to the client, containing info about the room joined
 	 */
 	private JSONObject joinRoom(int clientId, int roomId) {
 		JSONObject response = new JSONObject();
@@ -234,6 +234,7 @@ public class GameServer {
 			} else {
 				setSuccess(response);
 				addClientToRoom(clientId, room);
+				addRoomInfo(response, room);
 			}
 		}
 		
@@ -341,6 +342,12 @@ public class GameServer {
 		response.setInt("capacity", room.capacity());
 		response.setInt("size", room.size());
 		response.setJSONObject("attributes", room.getAttributes());
+		
+		JSONArray clientIds = new JSONArray();
+		for (int id : room.getClientIds()) {
+			clientIds.append(id);
+		}
+		response.setJSONArray("clientIds", clientIds);
 	}
 	
 	/**
