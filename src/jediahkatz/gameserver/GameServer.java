@@ -152,6 +152,9 @@ public class GameServer {
 			case SEND_MESSAGE:
 				sendMessage(data.getInt("senderId"), data.getJSONArray("recipients"), data.getString("message"));
 				return; // No response when sending message
+			case BROADCAST_MESSAGE:
+				broadcastMessage(data.getInt("senderId"), data.getString("message"));
+				return; // No response when sending message
 			default:
 				//throw new RuntimeException("Invalid action: " + data.getString("action"));
 				return;
@@ -205,7 +208,7 @@ public class GameServer {
 		int id = nextRoomId++;
 		response.setInt("roomId", id);
 		
-		Room room = new Room(this, id, capacity);
+		Room room = new Room(id, capacity);
 		rooms.put(id, room);
 		return response;
 	}
@@ -284,7 +287,7 @@ public class GameServer {
 		
 		// If all rooms full, then make a new one
 		int roomId = nextRoomId++;
-		Room room = new Room(this, roomId, capacity);
+		Room room = new Room(roomId, capacity);
 		rooms.put(roomId, room);
 		addClientToRoom(clientId, room);
 		addRoomInfo(response, room);
@@ -459,12 +462,28 @@ public class GameServer {
 	
 	/**
 	 * Send a message to one or more clients.
+	 * @param senderId the id of the sender
 	 * @param recipientIds an array containing the ids of all recipients
 	 * @param message the message text
 	 */
 	private void sendMessage(int senderId, JSONArray recipientIds, String message) {
 		for (int id : recipientIds.getIntArray()) {
 			sendTo(senderId, id, message);
+		}
+	}
+	
+	/**
+	 * Send a message to all clients in the same room as the sender, including the sender itself.
+	 * @param the id of the sender
+	 * @param message the message text
+	 */
+	private void broadcastMessage(int senderId, String message) {
+		Integer roomId = clientIdToRoomId.get(senderId);
+		if (roomId != null) {
+			Room room = rooms.get(roomId);
+			for (int id : room.getClientIds()) {
+				sendTo(senderId, id, message);
+			}
 		}
 	}
 	

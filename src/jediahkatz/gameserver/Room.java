@@ -1,6 +1,7 @@
 package jediahkatz.gameserver;
 
 import java.util.HashSet;
+import java.util.Set;
 
 import processing.data.JSONArray;
 import processing.data.JSONObject;
@@ -12,13 +13,19 @@ class Room {
 	private final int id;
 	private final int capacity;
 	private JSONObject attributes = new JSONObject();
-	private GameServer server;
-	private HashSet<Integer> clientIds = new HashSet<>();
+	private Set<Integer> clientIds = new HashSet<>();
 	
-	public Room(GameServer server, int roomId, int capacity) {
-		this.server = server;
+	public Room(int roomId, int capacity) {
 		this.id = roomId;
 		this.capacity = capacity;
+	}
+	
+	/**
+	 * Get the ids of all clients in the room as a set.
+	 * Warning: modifying this set will modify the room.
+	 */
+	public Set<Integer> getClientIds() {
+		return clientIds;
 	}
 	
 	/**
