@@ -21,6 +21,7 @@ public class GameClient {
 	private final DataFetcher thread;
 	
 	private final int id;
+	private Integer roomId = null;
 	private Client client;
 	// Maps action to a buffer containing data objects for those actions
 	private Map<String, Queue<JSONObject>> dataBuffer = new ConcurrentHashMap<>();
@@ -88,6 +89,14 @@ public class GameClient {
 	}
 	
 	/**
+	 * Get the id of the room that this client is currently in, or null if this client is not in a room.
+	 * @return the id of this client's room, or null if not in a room
+	 */
+	public Integer roomId() {
+		return roomId;
+	}
+	
+	/**
 	 * Create a new room.
 	 * @param capacity the maximum number of clients allowed in the room
 	 * @return the unique id of the newly created room
@@ -112,6 +121,10 @@ public class GameClient {
 	 * @throws AlreadyInRoomException if this client is currently in a room
 	 */
 	public void joinRoom(int roomId) {
+		if (this.roomId != null) {
+			throw new AlreadyInRoomException("Can't join a room while already in a room.");
+		}
+		
 		JSONObject request = new JSONObject();
 		setAction(request, ActionCode.REGISTER_ROOM);
 		request.setInt("roomId", roomId);
@@ -119,7 +132,7 @@ public class GameClient {
 		JSONObject response = waitForFirstAction(ActionCode.REGISTER_ROOM);
 		if (response.getString("status").equals("error")) {
 			switch (ErrorCode.valueOf(response.getString("error"))) {
-			case ALREADY_IN_ROOM:
+			case ALREADY_IN_ROOM: // This hopefully should never happen
 				throw new AlreadyInRoomException("Can't join a room while already in a room.");
 			case ROOM_FULL:
 				throw new RoomFullException("Tried to join a room that is already full.");
@@ -129,6 +142,8 @@ public class GameClient {
 				throw new RuntimeException("Failed to join room.");
 			}
 		}
+		
+		this.roomId = roomId;
 	}
 	
 	/**
@@ -141,7 +156,7 @@ public class GameClient {
 				JSONObject data = JSONObject.parse(s);
 				if (data.hasKey("action")) {
 					String action = data.getString("action");
-					appendAction(action, data);
+					appendAction(ActionCode.valueOf(action), data);
 				}
 			} catch (RuntimeException e) {
 				// Invalid JSON string
