@@ -147,6 +147,24 @@ public class GameClient {
 	}
 	
 	/**
+	 * Leave the room that this client is currently in.
+	 * If the client is not in a room this method does nothing.
+	 */
+	public void leaveRoom() {
+		if (roomId != null) {
+			JSONObject request = new JSONObject();
+			setAction(request, ActionCode.LEAVE_ROOM);
+			send(request);
+			JSONObject response = waitForFirstAction(ActionCode.LEAVE_ROOM);
+			if (response.getString("status").equals("success")) {
+				roomId = null;
+			} else {
+				throw new RuntimeException("Failed to leave room.");
+			}
+		}
+	}
+	
+	/**
 	 * Fetch new data for this client and put it into the buffer.
 	 */
 	private void fetchData() {
