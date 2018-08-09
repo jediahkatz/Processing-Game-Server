@@ -41,7 +41,7 @@ public class GameClient {
 		thread = new DataFetcher(this);
 		new Thread(thread).start();
 				
-		JSONObject response = waitForFirstAction("registerClient");
+		JSONObject response = waitForFirstAction(ActionCode.REGISTER_CLIENT);
 		if (response.getString("status").equals("success")) {
 			id = response.getInt("clientId");
 		} else {
@@ -63,13 +63,17 @@ public class GameClient {
 	 */
 	public void disconnect() {
 		JSONObject request = new JSONObject();
-		request.setString("action", "disconnect");
+		setAction(request, ActionCode.DISCONNECT);
 		request.setInt("clientId", id);
 		send(request);
 		thread.stop();
 		client.stop();
 	}
 	
+	/**
+	 * Check if this client is currently connected to the server.
+	 * @return true if this client is connected, otherwise false
+	 */
 	public boolean connected() {
 		return client != null && client.active();
 	}
@@ -89,10 +93,10 @@ public class GameClient {
 	 */
 	public int createRoom(int capacity) {
 		JSONObject request = new JSONObject();
-		request.setString("action", "registerRoom");
+		setAction(request, ActionCode.REGISTER_ROOM);
 		request.setInt("capacity", capacity);
 		send(request);
-		JSONObject response = waitForFirstAction("registerRoom");
+		JSONObject response = waitForFirstAction(ActionCode.REGISTER_ROOM);
 		if (response.getString("status").equals("success")) {
 			return response.getInt("roomId");
 		}
@@ -122,11 +126,12 @@ public class GameClient {
 	 * @param action the name of the action
 	 * @param data the action/response data
 	 */
-	private void appendAction(String action, JSONObject data) {
-		Queue<JSONObject> buffer = dataBuffer.get(action);
+	private void appendAction(ActionCode action, JSONObject data) {
+		String actionStr = action.name();
+		Queue<JSONObject> buffer = dataBuffer.get(actionStr);
 		if (buffer == null) {
 			buffer = new ConcurrentLinkedQueue<>();
-			dataBuffer.put(action, buffer);
+			dataBuffer.put(actionStr, buffer);
 		}
 		buffer.add(data);
 	}
@@ -136,8 +141,9 @@ public class GameClient {
 	 * @param action the type of action to search for
 	 * @returns the first data received with given action type, or null if none exists
 	 */
-	private JSONObject getFirstAction(String action) {
-		Queue<JSONObject> buffer = dataBuffer.get(action);
+	private JSONObject getFirstAction(ActionCode action) {
+		String actionStr = action.name();
+		Queue<JSONObject> buffer = dataBuffer.get(actionStr);
 		if (buffer != null) {
 			return buffer.poll();
 		}
@@ -150,7 +156,7 @@ public class GameClient {
 	 * @param action the type of action to search for
 	 * @returns the first data received with given action type
 	 */
-	private JSONObject waitForFirstAction(String action) {
+	private JSONObject waitForFirstAction(ActionCode action) {
 		long startTime = System.currentTimeMillis();
 		JSONObject data;
 		do {
@@ -169,6 +175,11 @@ public class GameClient {
 	private void send(JSONObject data) {
 		String messageStr = data.toString();
 		client.write(messageStr + SEP);
+	}
+	
+	/** Helper method to set action from enum on data object. **/
+	private void setAction(JSONObject data, ActionCode action) {
+		data.setString("action", action.name());
 	}
 	
 	/**
