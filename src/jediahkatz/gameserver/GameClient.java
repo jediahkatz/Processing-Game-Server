@@ -114,7 +114,7 @@ public class GameClient {
 	}
 	
 	/**
-	 * Join an existing room new room.
+	 * Join an existing room.
 	 * @param roomId the unique id of the room to join
 	 * @return an object containing info about the room joined
 	 * @throws NoSuchElementException if no room exists with the given id
@@ -164,6 +164,36 @@ public class GameClient {
 				throw new RuntimeException("Failed to leave room.");
 			}
 		}
+	}
+	
+	/**
+	 * Join any room that isn't full, or create a new room if all rooms are full.
+	 * @param capacity the maximum number of clients allowed in a new room, if one is created
+	 * @return an object containing info about the room joined
+	 * @throws AlreadyInRoomException if this client is currently in a room
+	 */
+	public RoomInfo autojoinRoom(int capacity) {
+		if (this.roomId != null) {
+			throw new AlreadyInRoomException("Can't join a room while already in a room.");
+		}
+		
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.AUTOJOIN_ROOM);
+		request.setInt("capacity", capacity);
+		send(request);
+		JSONObject response = waitForFirstAction(ActionCode.AUTOJOIN_ROOM);
+		if (response.getString("status").equals("error")) {
+			switch (ErrorCode.valueOf(response.getString("error"))) {
+			case ALREADY_IN_ROOM: // This hopefully should never happen
+				throw new AlreadyInRoomException("Can't join a room while already in a room.");
+			default:
+				throw new RuntimeException("Failed to join room.");
+			}
+		}
+		
+		RoomInfo info = constructRoomInfo(response);
+		this.roomId = info.id();
+		return info;
 	}
 		
 	/**
