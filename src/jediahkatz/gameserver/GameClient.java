@@ -222,6 +222,7 @@ public class GameClient {
 	
 	/** Helper method to set action from enum on data object. **/
 	private void setAction(JSONObject data, ActionCode action) {
+		data.setInt("clientId", id);
 		data.setString("action", action.name());
 	}
 	

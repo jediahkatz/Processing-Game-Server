@@ -150,10 +150,10 @@ public class GameServer {
 				response = getServerAttributes();
 				break;
 			case SEND_MESSAGE:
-				sendMessage(data.getInt("senderId"), data.getJSONArray("recipients"), data.getString("message"));
+				sendMessage(data.getInt("clientId"), data.getJSONArray("recipients"), data.getString("message"));
 				return; // No response when sending message
 			case BROADCAST_MESSAGE:
-				broadcastMessage(data.getInt("senderId"), data.getString("message"));
+				broadcastMessage(data.getInt("clientId"), data.getString("message"));
 				return; // No response when sending message
 			default:
 				//throw new RuntimeException("Invalid action: " + data.getString("action"));
