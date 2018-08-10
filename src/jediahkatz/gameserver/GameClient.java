@@ -212,7 +212,7 @@ public class GameClient {
 		if (response.getString("status").equals("error")) {
 			switch (ErrorCode.valueOf(response.getString("error"))) {
 			case ROOM_NOT_FOUND:
-				throw new AlreadyInRoomException("No room exists with id: " + roomId);
+				throw new NoSuchElementException("No room exists with id: " + roomId);
 			default:
 				throw new RuntimeException("Failed to get room info.");
 			}
@@ -247,6 +247,7 @@ public class GameClient {
 	 * Set the attributes for a room with a new JSONObject.
 	 * @param roomId the unique id of the room to set attributes for
 	 * @param attributes the object containing the attributes to set for the room
+	 * @throws NoSuchElementException if no room exists with the given id
 	 */
 	public void setRoomAttributes(int roomId, JSONObject attributes) {
 		JSONObject request = new JSONObject();
@@ -256,7 +257,37 @@ public class GameClient {
 		send(request);
 		JSONObject response = waitForFirstAction(ActionCode.SET_ROOM_ATTRIBUTES);
 		if (response.getString("status").equals("error")) {
-			throw new RuntimeException("Failed to set room attributes.");
+			switch (ErrorCode.valueOf(response.getString("error"))) {
+			case ROOM_NOT_FOUND:
+				throw new NoSuchElementException("No room exists with id: " + roomId);
+			default:
+				throw new RuntimeException("Failed to set room attributes.");
+			}
+		}
+	}
+	
+	/**
+	 * Add a single attribute to a room.
+	 * @param roomId the unique id of the room to add an attribute to
+	 * @param key the key or name of the attribute
+	 * @param value the value of the attribute
+	 * @throws NoSuchElementException if no room exists with the given id
+	 */
+	public void putRoomAttribute(int roomId, String key, String value) {
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.PUT_ROOM_ATTRIBUTE);
+		request.setInt("roomId", roomId);
+		request.setString("key", key);
+		request.setString("value", value);
+		send(request);
+		JSONObject response = waitForFirstAction(ActionCode.PUT_ROOM_ATTRIBUTE);
+		if (response.getString("status").equals("error")) {
+			switch (ErrorCode.valueOf(response.getString("error"))) {
+			case ROOM_NOT_FOUND:
+				throw new NoSuchElementException("No room exists with id: " + roomId);
+			default:
+				throw new RuntimeException("Failed to add room attribute.");
+			}
 		}
 	}
 		
