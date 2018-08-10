@@ -226,7 +226,7 @@ public class GameClient {
 	 * Get info about all rooms on the server.
 	 * @return an array of objects containing info about the rooms
 	 */
-	public RoomInfo[] getRoomInfo() {
+	public RoomInfo[] getRoomsInfo() {
 		JSONObject request = new JSONObject();
 		setAction(request, ActionCode.GET_ROOMS_INFO);
 		send(request);
@@ -241,6 +241,23 @@ public class GameClient {
 			infoArray[i] = constructRoomInfo(roomsInfo.getJSONObject(i));
 		}
 		return infoArray;
+	}
+	
+	/**
+	 * Set the attributes for a room with a new JSONObject.
+	 * @param roomId the unique id of the room to set attributes for
+	 * @param attributes the object containing the attributes to set for the room
+	 */
+	public void setRoomAttributes(int roomId, JSONObject attributes) {
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.SET_ROOM_ATTRIBUTES);
+		request.setInt("roomId", roomId);
+		request.setJSONObject("attributes", attributes);
+		send(request);
+		JSONObject response = waitForFirstAction(ActionCode.SET_ROOM_ATTRIBUTES);
+		if (response.getString("status").equals("error")) {
+			throw new RuntimeException("Failed to set room attributes.");
+		}
 	}
 		
 	/**
