@@ -290,6 +290,21 @@ public class GameClient {
 			}
 		}
 	}
+	
+	/**
+	 * Set the attributes for the server with a new JSONObject.
+	 * @param attributes the object containing the attributes to set for the room
+	 */
+	public void setServerAttributes(JSONObject attributes) {
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.SET_SERVER_ATTRIBUTES);
+		request.setJSONObject("attributes", attributes);
+		send(request);
+		JSONObject response = waitForFirstAction(ActionCode.SET_SERVER_ATTRIBUTES);
+		if (response.getString("status").equals("error")) {
+			throw new RuntimeException("Failed to add server attribute.");
+		}
+	}
 		
 	/**
 	 * Construct a RoomInfo object from the given data.
