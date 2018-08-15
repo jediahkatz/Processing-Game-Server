@@ -392,6 +392,81 @@ public class GameClient {
 	}
 	
 	/**
+	 * Add a single attribute to a room.
+	 * @param roomId the unique id of the room to add an attribute to
+	 * @param key the key or name of the attribute
+	 * @param value the value of the attribute
+	 * @throws NoSuchElementException if no room exists with the given id
+	 */
+	public void putRoomAttribute(int roomId, String key, float value) {
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.PUT_ROOM_ATTRIBUTE);
+		request.setInt("roomId", roomId);
+		request.setString("key", key);
+		request.setFloat("value", value);
+		send(request);
+		JSONObject response = waitForFirstAction(ActionCode.PUT_ROOM_ATTRIBUTE);
+		if (response.getString("status").equals("error")) {
+			switch (ErrorCode.valueOf(response.getString("error"))) {
+			case ROOM_NOT_FOUND:
+				throw new NoSuchElementException("No room exists with id: " + roomId);
+			default:
+				throw new RuntimeException("Failed to add room attribute.");
+			}
+		}
+	}
+	
+	/**
+	 * Add a single attribute to a room.
+	 * @param roomId the unique id of the room to add an attribute to
+	 * @param key the key or name of the attribute
+	 * @param value the value of the attribute
+	 * @throws NoSuchElementException if no room exists with the given id
+	 */
+	public void putRoomAttribute(int roomId, String key, double value) {
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.PUT_ROOM_ATTRIBUTE);
+		request.setInt("roomId", roomId);
+		request.setString("key", key);
+		request.setDouble("value", value);
+		send(request);
+		JSONObject response = waitForFirstAction(ActionCode.PUT_ROOM_ATTRIBUTE);
+		if (response.getString("status").equals("error")) {
+			switch (ErrorCode.valueOf(response.getString("error"))) {
+			case ROOM_NOT_FOUND:
+				throw new NoSuchElementException("No room exists with id: " + roomId);
+			default:
+				throw new RuntimeException("Failed to add room attribute.");
+			}
+		}
+	}
+	
+	/**
+	 * Add a single attribute to a room.
+	 * @param roomId the unique id of the room to add an attribute to
+	 * @param key the key or name of the attribute
+	 * @param value the value of the attribute
+	 * @throws NoSuchElementException if no room exists with the given id
+	 */
+	public void putRoomAttribute(int roomId, String key, Long value) {
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.PUT_ROOM_ATTRIBUTE);
+		request.setInt("roomId", roomId);
+		request.setString("key", key);
+		request.setLong("value", value);
+		send(request);
+		JSONObject response = waitForFirstAction(ActionCode.PUT_ROOM_ATTRIBUTE);
+		if (response.getString("status").equals("error")) {
+			switch (ErrorCode.valueOf(response.getString("error"))) {
+			case ROOM_NOT_FOUND:
+				throw new NoSuchElementException("No room exists with id: " + roomId);
+			default:
+				throw new RuntimeException("Failed to add room attribute.");
+			}
+		}
+	}
+	
+	/**
 	 * Set the attributes for the server with a new JSONObject.
 	 * @param attributes the object containing the attributes to set for the room
 	 */
