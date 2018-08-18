@@ -482,6 +482,19 @@ public class GameClient {
 	}
 		
 	/**
+	 * Get the attributes for the server as a JSONObject.
+	 */
+	public void getServerAttributes() {
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.GET_SERVER_ATTRIBUTES);
+		send(request);
+		JSONObject response = waitForFirstAction(ActionCode.GET_SERVER_ATTRIBUTES);
+		if (response.getString("status").equals("error")) {
+			throw new RuntimeException("Failed to get server attributes.");
+		}
+	}
+		
+	/**
 	 * Construct a RoomInfo object from the given data.
 	 */
 	private RoomInfo constructRoomInfo(JSONObject data) {
