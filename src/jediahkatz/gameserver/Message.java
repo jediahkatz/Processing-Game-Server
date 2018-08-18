@@ -8,6 +8,7 @@ public class Message {
 	private JSONObject body;
 	
 	Message(int senderId, JSONObject body) {
+		this.senderId = senderId;
 		this.body = body;
 	}
 	
