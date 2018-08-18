@@ -3,6 +3,9 @@ package jediahkatz.gameserver;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
+
+import jediahkatz.gameserver.GameClient.DataFetcher;
+
 import java.util.Objects;
 
 import processing.core.*;
@@ -28,6 +31,8 @@ public class GameServer {
 	// Keep track of which clients have disconnected safely - this stores their hashcodes
 	private HashSet<Integer> disconnected = new HashSet<>();
 	
+	private final ServerRunner thread;
+	
 	/**
 	 * 
 	 * @param parent the current sketch (this)
@@ -37,19 +42,36 @@ public class GameServer {
 		// Unfortunately the generic registerMethod is no longer supported. These will need to be called manually.
 		//parent.registerMethod("serverEvent", this);
 		//parent.registerMethod("disconnectEvent", this);
+		parent.registerMethod("dispose", this);
 		server = new Server(parent, port);
+		
+		// Start a new thread to run the server on
+		thread = new ServerRunner(this);
+		new Thread(thread).start();
 	}
 	
 	/**
 	 * Run the server.
 	 */
-	public void run() {
+	private void run() {
 		Client client = server.available();
 		while (client != null) {
 			JSONObject data = getData(client);
 			handleData(client, data);
 			client = server.available();
 		}
+	}
+	
+	public void dispose() {
+		stop();
+	}
+	
+	/**
+	 * Shut down this server.
+	 */
+	public void stop() {
+		server.stop();
+		thread.stop();
 	}
 	
 	/**
@@ -520,6 +542,40 @@ public class GameServer {
 	private void setError(JSONObject data, ErrorCode error) {
 		data.setString("status", "error");
 		data.setString("error", error.name());
+	}
+	
+	
+	/**
+	 * Runs in its own thread and continuously handles the server's jobs.
+	 * @author jediahkatz
+	 */
+	class ServerRunner implements Runnable {
+		// How many ms to sleep between fetches
+		private final int SLEEP_TIME = 10;
+		private volatile boolean shutdown = false;
+		private GameServer server;
+		
+		ServerRunner(GameServer server) {
+			this.server = server;
+		}
+
+		@Override
+		public void run() {
+			while (true) {
+				server.run();
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+				}
+				if (shutdown) {
+					return;
+				}
+			}
+		}
+		
+		public void stop() {
+			shutdown = true;
+		}
 	}
 }
 
