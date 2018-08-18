@@ -547,7 +547,7 @@ public class GameClient {
 		JSONObject data = getFirstAction(ActionCode.GET_MESSAGE);
 		if (data != null) {
 			JSONObject body = data.getJSONObject("body");
-			int senderId = data.getInt("clientId");
+			int senderId = data.getInt("senderId");
 			return new Message(senderId, body);
 		}
 		return null;
@@ -562,7 +562,7 @@ public class GameClient {
 		Message[] messages = new Message[data.length];
 		for (int i=0; i<data.length; i++) {
 			JSONObject body = data[i].getJSONObject("body");
-			int senderId = data[i].getInt("clientId");
+			int senderId = data[i].getInt("senderId");
 			messages[i] = new Message(senderId, body);
 		}
 		return messages;
