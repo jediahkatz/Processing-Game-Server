@@ -199,13 +199,11 @@ public class GameServer {
 	 */
 	private void disconnect(int clientId) {
 		Client client = clients.remove(clientId);
-		PApplet.println("Removing " + clientId);
 		if (client != null) {
 			client.stop();
 			disconnected.add(client.hashCode());
 		}
 		Integer roomId = clientIdToRoomId.remove(clientId);
-		PApplet.println("In room " + roomId);
 		if (roomId != null) {
 			rooms.get(roomId).removeClient(clientId);
 		}
@@ -274,9 +272,7 @@ public class GameServer {
 	/** Helper method to add client to room. **/
 	private void addClientToRoom(int clientId, Room room) {
 		room.addClient(clientId);
-		PApplet.println("Adding " + clientId + " to room " + room.id());
 		clientIdToRoomId.put(clientId, room.id());
-		PApplet.println(clientIdToRoomId);
 	}
 	
 	/**
