@@ -178,10 +178,10 @@ public class GameServer {
 				response = getServerAttributes();
 				break;
 			case SEND_MESSAGE:
-				sendMessage(data.getInt("clientId"), data.getJSONArray("recipients"), data.getString("message"));
+				sendMessage(data.getInt("clientId"), data.getJSONArray("recipients"), data.getJSONObject("message"));
 				return; // No response when sending message
 			case BROADCAST_MESSAGE:
-				broadcastMessage(data.getInt("clientId"), data.getString("message"));
+				broadcastMessage(data.getInt("clientId"), data.getJSONObject("message"));
 				return; // No response when sending message
 			default:
 				//throw new RuntimeException("Invalid action: " + data.getString("action"));
@@ -505,7 +505,7 @@ public class GameServer {
 	 * @param recipientIds an array containing the ids of all recipients
 	 * @param message the message text
 	 */
-	private void sendMessage(int senderId, JSONArray recipientIds, String message) {
+	private void sendMessage(int senderId, JSONArray recipientIds, JSONObject message) {
 		for (int id : recipientIds.getIntArray()) {
 			sendTo(senderId, id, message);
 		}
@@ -516,7 +516,7 @@ public class GameServer {
 	 * @param the id of the sender
 	 * @param message the message text
 	 */
-	private void broadcastMessage(int senderId, String message) {
+	private void broadcastMessage(int senderId, JSONObject message) {
 		Integer roomId = clientIdToRoomId.get(senderId);
 		if (roomId != null) {
 			Room room = rooms.get(roomId);
@@ -527,13 +527,13 @@ public class GameServer {
 	}
 	
 	/** Helper method to send a message to a client. */
-	private void sendTo(int senderId, int recipientId, String message) {
+	private void sendTo(int senderId, int recipientId, JSONObject message) {
 		Client recipient = clients.get(recipientId);
 		if (recipient != null) {
 			JSONObject messageData = new JSONObject();
 			setAction(messageData, ActionCode.GET_MESSAGE);
 			setSuccess(messageData);
-			messageData.setString("message", message);
+			messageData.setJSONObject("message", message);
 			send(recipient, messageData);
 		}
 	}

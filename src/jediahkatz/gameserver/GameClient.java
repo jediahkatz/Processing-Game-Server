@@ -499,13 +499,13 @@ public class GameClient {
 	 * @param recipientId the unique id of the message recipient
 	 * @param message the body of the message
 	 */
-	public void sendMessage(int recipientId, String message) {
+	public void sendMessage(int recipientId, Message message) {
 		JSONObject request = new JSONObject();
 		setAction(request, ActionCode.SEND_MESSAGE);
 		JSONArray recipients = new JSONArray();
 		recipients.append(recipientId);
 		request.setJSONArray("recipients", recipients);
-		request.setString("message", message);
+		request.setJSONObject("message", message.getBody());
 		send(request);
 	}
 	
@@ -514,7 +514,7 @@ public class GameClient {
 	 * @param recipientIds an array of the unique ids of all message recipients
 	 * @param message the body of the message
 	 */
-	public void sendMessage(int[] recipientIds, String message) {
+	public void sendMessage(int[] recipientIds, Message message) {
 		JSONObject request = new JSONObject();
 		setAction(request, ActionCode.SEND_MESSAGE);
 		JSONArray recipients = new JSONArray();
@@ -522,7 +522,7 @@ public class GameClient {
 			recipients.append(recipientId);
 		}
 		request.setJSONArray("recipients", recipients);
-		request.setString("message", message);
+		request.setJSONObject("message", message.getBody());
 		send(request);
 	}
 	
@@ -531,10 +531,10 @@ public class GameClient {
 	 * If this client is not in a room, this method has no effect.
 	 * @param message the body of the message
 	 */
-	public void broadcastMessage(String message) {
+	public void broadcastMessage(Message message) {
 		JSONObject request = new JSONObject();
 		setAction(request, ActionCode.BROADCAST_MESSAGE);
-		request.setString("message", message);
+		request.setJSONObject("message", message.getBody());
 		send(request);
 	}
 	
@@ -543,10 +543,12 @@ public class GameClient {
 	 * If there are no messages, this method returns null.
 	 * @return the message text, or null if there are no messages
 	 */
-	public String getNextMessage() {
+	public Message getNextMessage() {
 		JSONObject data = getFirstAction(ActionCode.GET_MESSAGE);
 		if (data != null) {
-			return data.getString("message");
+			JSONObject body = data.getJSONObject("body");
+			int senderId = data.getInt("clientId");
+			return new Message(senderId, body);
 		}
 		return null;
 	}
@@ -555,11 +557,13 @@ public class GameClient {
 	 * Get all messages received by this client.
 	 * @return an array containing all messages, in increasing chronological order
 	 */
-	public String[] getMessages() {
+	public Message[] getMessages() {
 		JSONObject[] data = getAllActions(ActionCode.GET_MESSAGE);
-		String[] messages = new String[data.length];
+		Message[] messages = new Message[data.length];
 		for (int i=0; i<data.length; i++) {
-			messages[i] = data[i].getString("message");
+			JSONObject body = data[i].getJSONObject("body");
+			int senderId = data[i].getInt("clientId");
+			messages[i] = new Message(senderId, body);
 		}
 		return messages;
 	}
