@@ -1,16 +1,16 @@
-/* In this version of rock paper scissors, the players keep track
- * of their choices locally and broadcast their choices to the room.
- * A risk associated with this method is that there is no storage of
- * the game state on the server; e.g., if a message were to get lost,
- * or a player disconnected, information might be lost. */
+/* In this version of rock paper scissors, we use room attributes
+ * to keep track of the game state (i.e., the players' choices). 
+ * One upside of this method is that game state is stored on the
+ * server, so as long as the server remains running, information
+ * can always be retrieved from there even if a client disconnects. */
 import jediahkatz.gameserver.*;
 import processing.net.*;
 
 GameClient client = new GameClient(this, "127.0.0.1", 4321);
 boolean playing = false;
+boolean chosen = false;
+int opponentId;
 String message;
-String choice = null;
-String oppChoice = null;
 int time = -1;
 
 void setup() {
@@ -19,6 +19,7 @@ void setup() {
   // Autojoin a room with capacity of 2
   client.autojoinRoom(2);
   message = "Waiting for an opponent...";
+  reset();
 }
 
 void draw() {
@@ -28,16 +29,21 @@ void draw() {
   if (!playing && hasOpponent) {
     // Start the game
     playing = true;
+    // Which of the two clients in the room isn't me?
+    int[] clients = info.clients();
+    if (clients[0] != client.id()) {
+      opponentId = clients[0];
+    } else {
+      opponentId = clients[1];
+    }
   } else if (playing && !hasOpponent) {
     message = "Opponent disconnected. Waiting for another...";
     playing = false;
     reset();
   } else if (playing) {
-    // Get opponent's move if possible
-    Message msg = client.getNextMessage();
-    if (msg != null && msg.getSenderId() != client.id()) {
-      oppChoice = msg.getString("choice"); 
-    }
+    // Get our move and opponent's move from the server
+    String oppChoice = info.attributes().getString(str(opponentId));
+    String choice = info.attributes().getString(str(client.id()));
     if (choice != null) {
       message = "You chose " + choice + "!";
       if (oppChoice != null) {
@@ -64,10 +70,11 @@ void draw() {
 }
 
 void mouseClicked(MouseEvent e) {
-  // Broadcast your move when a button is clicked
+  // Update your move in the room attributes when a button is clicked
   int x = e.getX();
   int y = e.getY();
-  if (playing && choice == null) {
+  String choice = null;
+  if (playing && !chosen) {
     if (dist(x, y, 75, 150) < 40) {
       choice = "rock";
     } else if (dist(x, y, 150, 150) < 40) {
@@ -76,10 +83,10 @@ void mouseClicked(MouseEvent e) {
       choice = "scissors"; 
     }
     
+    // We're going to use the client's id as the attribute key
     if (choice != null) {
-      JSONObject data = new JSONObject();
-      data.setString("choice", choice);
-      client.broadcastMessage(data);
+      client.putRoomAttribute(client.roomId(), str(client.id()), choice);
+      chosen = true;
     }
   }
 }
@@ -118,6 +125,7 @@ void drawButtons() {
 }
 
 void reset() {
-  choice = oppChoice = null;
+  client.setRoomAttributes(client.roomId(), new JSONObject());
   time = -1;
+  chosen = false;
 }
