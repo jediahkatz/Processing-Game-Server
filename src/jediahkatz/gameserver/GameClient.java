@@ -495,7 +495,7 @@ public class GameClient {
 	}
 	
 	/**
-	 * Send a message to a single recipient.
+	 * Send a message to a single client.
 	 * @param recipientId the unique id of the message recipient
 	 * @param message the body of the message
 	 */
@@ -510,7 +510,7 @@ public class GameClient {
 	}
 	
 	/**
-	 * Send a message to multiple recipients.
+	 * Send a message to multiple clients.
 	 * @param recipientIds an array of the unique ids of all message recipients
 	 * @param message the body of the message
 	 */
@@ -522,6 +522,18 @@ public class GameClient {
 			recipients.append(recipientId);
 		}
 		request.setJSONArray("recipients", recipients);
+		request.setString("message", message);
+		send(request);
+	}
+	
+	/**
+	 * Send a message to all clients in the same room as this client, including this client.
+	 * If this client is not in a room, this method has no effect.
+	 * @param message the body of the message
+	 */
+	public void broadcastMessage(String message) {
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.BROADCAST_MESSAGE);
 		request.setString("message", message);
 		send(request);
 	}
