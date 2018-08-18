@@ -519,7 +519,7 @@ public class GameServer {
 	/** Helper method to set status as error and set error from enum on data object. **/
 	private void setError(JSONObject data, ErrorCode error) {
 		data.setString("status", "error");
-		data.setString("errorCode", error.name());
+		data.setString("error", error.name());
 	}
 }
 
