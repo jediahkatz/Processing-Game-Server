@@ -501,6 +501,7 @@ public class GameServer {
 			JSONObject messageData = new JSONObject();
 			setAction(messageData, ActionCode.GET_MESSAGE);
 			setSuccess(messageData);
+			messageData.setString("message", message);
 			send(recipient, messageData);
 		}
 	}
