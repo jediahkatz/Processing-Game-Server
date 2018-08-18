@@ -371,7 +371,7 @@ public class GameClient {
 	 * @param roomId the unique id of the room to add an attribute to
 	 * @param key the key or name of the attribute
 	 * @param value the value of the attribute
-	 * @throws NoSuchElementException if no room exists with the given id
+	 * @throws NoSuchRoomException if no room exists with the given id
 	 */
 	public void putRoomAttribute(int roomId, String key, JSONArray value) {
 		JSONObject request = new JSONObject();
@@ -384,7 +384,7 @@ public class GameClient {
 		if (response.getString("status").equals("error")) {
 			switch (ErrorCode.valueOf(response.getString("error"))) {
 			case ROOM_NOT_FOUND:
-				throw new NoSuchElementException("No room exists with id: " + roomId);
+				throw new NoSuchRoomException("No room exists with id: " + roomId);
 			default:
 				throw new RuntimeException("Failed to add room attribute.");
 			}
@@ -396,7 +396,7 @@ public class GameClient {
 	 * @param roomId the unique id of the room to add an attribute to
 	 * @param key the key or name of the attribute
 	 * @param value the value of the attribute
-	 * @throws NoSuchElementException if no room exists with the given id
+	 * @throws NoSuchRoomException if no room exists with the given id
 	 */
 	public void putRoomAttribute(int roomId, String key, float value) {
 		JSONObject request = new JSONObject();
@@ -409,7 +409,7 @@ public class GameClient {
 		if (response.getString("status").equals("error")) {
 			switch (ErrorCode.valueOf(response.getString("error"))) {
 			case ROOM_NOT_FOUND:
-				throw new NoSuchElementException("No room exists with id: " + roomId);
+				throw new NoSuchRoomException("No room exists with id: " + roomId);
 			default:
 				throw new RuntimeException("Failed to add room attribute.");
 			}
@@ -720,6 +720,17 @@ public class GameClient {
 	@SuppressWarnings("serial")
 	public class AlreadyInRoomException extends IllegalStateException {
 		AlreadyInRoomException(String message) {
+			super(message);
+		}
+	}
+	
+	/**
+	 * Exception thrown when trying to access a room that doesn't exist.
+	 * @author jediahkatz
+	 */
+	@SuppressWarnings("serial")
+	public class NoSuchRoomException extends NoSuchElementException {
+		NoSuchRoomException(String message) {
 			super(message);
 		}
 	}
