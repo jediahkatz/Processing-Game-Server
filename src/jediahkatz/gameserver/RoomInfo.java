@@ -1,5 +1,7 @@
 package jediahkatz.gameserver;
 
+import java.util.Arrays;
+
 import processing.data.JSONObject;
 
 /**
@@ -14,6 +16,7 @@ public class RoomInfo {
 	private final int size;
 	private final JSONObject attributes;
 	private final int[] clientIds;
+	private final String clientsString;
 	
 	RoomInfo(int id, int capacity, int size, JSONObject attributes, int[] clientIds) {
 		this.id = id;
@@ -21,6 +24,7 @@ public class RoomInfo {
 		this.size = size;
 		this.attributes = attributes;
 		this.clientIds = clientIds;
+		clientsString = Arrays.toString(clientIds);
 	}
 	
 	/** Get this room's unique id. **/
@@ -52,5 +56,11 @@ public class RoomInfo {
 	**/
 	public JSONObject attributes() {
 		return attributes;
+	}
+	
+	@Override
+	public String toString() {
+		return "Room " + id + " (capacity " + capacity + "): {\nClients: " 
+				+ clientsString + "\nAttributes: " + attributes.toString() + "\n}";
 	}
 }
