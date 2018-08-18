@@ -57,7 +57,9 @@ public class GameServer {
 		Client client = server.available();
 		while (client != null) {
 			JSONObject data = getData(client);
-			handleData(client, data);
+			if (data != null) {
+				handleData(client, data);
+			}
 			client = server.available();
 		}
 	}
@@ -116,7 +118,11 @@ public class GameServer {
 	 * @return JSONObject an object containing the client's data
 	 */
 	private JSONObject getData(Client client) {
-		return JSONObject.parse(client.readStringUntil(SEP));
+		String dataStr = client.readStringUntil(SEP);
+		if (dataStr == null) {
+			return null;
+		}
+		return JSONObject.parse(dataStr);
 	}
 	
 	/**
