@@ -499,13 +499,13 @@ public class GameClient {
 	 * @param recipientId the unique id of the message recipient
 	 * @param message the body of the message
 	 */
-	public void sendMessage(int recipientId, Message message) {
+	public void sendMessage(int recipientId, JSONObject message) {
 		JSONObject request = new JSONObject();
 		setAction(request, ActionCode.SEND_MESSAGE);
 		JSONArray recipients = new JSONArray();
 		recipients.append(recipientId);
 		request.setJSONArray("recipients", recipients);
-		request.setJSONObject("message", message.getBody());
+		request.setJSONObject("message", message);
 		send(request);
 	}
 	
@@ -514,7 +514,7 @@ public class GameClient {
 	 * @param recipientIds an array of the unique ids of all message recipients
 	 * @param message the body of the message
 	 */
-	public void sendMessage(int[] recipientIds, Message message) {
+	public void sendMessage(int[] recipientIds, JSONObject message) {
 		JSONObject request = new JSONObject();
 		setAction(request, ActionCode.SEND_MESSAGE);
 		JSONArray recipients = new JSONArray();
@@ -522,7 +522,7 @@ public class GameClient {
 			recipients.append(recipientId);
 		}
 		request.setJSONArray("recipients", recipients);
-		request.setJSONObject("message", message.getBody());
+		request.setJSONObject("message", message);
 		send(request);
 	}
 	
@@ -531,10 +531,10 @@ public class GameClient {
 	 * If this client is not in a room, this method has no effect.
 	 * @param message the body of the message
 	 */
-	public void broadcastMessage(Message message) {
+	public void broadcastMessage(JSONObject message) {
 		JSONObject request = new JSONObject();
 		setAction(request, ActionCode.BROADCAST_MESSAGE);
-		request.setJSONObject("message", message.getBody());
+		request.setJSONObject("message", message);
 		send(request);
 	}
 	
