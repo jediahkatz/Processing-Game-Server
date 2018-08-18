@@ -31,4 +31,6 @@ enum ActionCode {
 	SEND_MESSAGE,
 	/** Send a message to all clients in the same room. **/
 	BROADCAST_MESSAGE,
+	/** Get messages sent to this client. **/
+	GET_MESSAGE,
 }

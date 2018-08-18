@@ -499,7 +499,7 @@ public class GameServer {
 		Client recipient = clients.get(recipientId);
 		if (recipient != null) {
 			JSONObject messageData = new JSONObject();
-			setAction(messageData, ActionCode.SEND_MESSAGE);
+			setAction(messageData, ActionCode.GET_MESSAGE);
 			setSuccess(messageData);
 			send(recipient, messageData);
 		}

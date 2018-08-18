@@ -537,6 +537,32 @@ public class GameClient {
 		request.setString("message", message);
 		send(request);
 	}
+	
+	/**
+	 * Get the next message received by this client from the queue.
+	 * If there are no messages, this method returns null.
+	 * @return the message text, or null if there are no messages
+	 */
+	public String getNextMessage() {
+		JSONObject data = getFirstAction(ActionCode.GET_MESSAGE);
+		if (data != null) {
+			return data.getString("message");
+		}
+		return null;
+	}
+	
+	/**
+	 * Get all messages received by this client.
+	 * @return an array containing all messages, in increasing chronological order
+	 */
+	public String[] getMessages() {
+		JSONObject[] data = getAllActions(ActionCode.GET_MESSAGE);
+		String[] messages = new String[data.length];
+		for (int i=0; i<data.length; i++) {
+			messages[i] = data[i].getString("message");
+		}
+		return messages;
+	}
 		
 	/**
 	 * Construct a RoomInfo object from the given data.
@@ -578,6 +604,22 @@ public class GameClient {
 			dataBuffer.put(actionStr, buffer);
 		}
 		buffer.add(data);
+	}
+	
+	/**
+	 * Get the all data objects received with the given action type, and remove them from the buffer.
+	 * @param action the type of action to search for
+	 * @returns an array containing all data objects received, in increasing chronological order
+	 */
+	private JSONObject[] getAllActions(ActionCode action) {
+		String actionStr = action.name();
+		Queue<JSONObject> buffer = dataBuffer.get(actionStr);
+		if (buffer != null) {
+			JSONObject[] actions = buffer.toArray(new JSONObject[0]);
+			buffer.clear();
+			return actions;
+		}
+		return new JSONObject[0];
 	}
 	
 	/**
