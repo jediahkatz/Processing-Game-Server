@@ -493,6 +493,38 @@ public class GameClient {
 			throw new RuntimeException("Failed to get server attributes.");
 		}
 	}
+	
+	/**
+	 * Send a message to a single recipient.
+	 * @param recipientId the unique id of the message recipient
+	 * @param message the body of the message
+	 */
+	public void sendMessage(int recipientId, String message) {
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.SEND_MESSAGE);
+		JSONArray recipients = new JSONArray();
+		recipients.append(recipientId);
+		request.setJSONArray("recipients", recipients);
+		request.setString("message", message);
+		send(request);
+	}
+	
+	/**
+	 * Send a message to multiple recipients.
+	 * @param recipientIds an array of the unique ids of all message recipients
+	 * @param message the body of the message
+	 */
+	public void sendMessage(int[] recipientIds, String message) {
+		JSONObject request = new JSONObject();
+		setAction(request, ActionCode.SEND_MESSAGE);
+		JSONArray recipients = new JSONArray();
+		for (int recipientId : recipientIds) {
+			recipients.append(recipientId);
+		}
+		request.setJSONArray("recipients", recipients);
+		request.setString("message", message);
+		send(request);
+	}
 		
 	/**
 	 * Construct a RoomInfo object from the given data.
