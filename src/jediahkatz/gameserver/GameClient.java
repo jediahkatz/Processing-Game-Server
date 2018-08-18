@@ -128,10 +128,10 @@ public class GameClient {
 		}
 		
 		JSONObject request = new JSONObject();
-		setAction(request, ActionCode.REGISTER_ROOM);
+		setAction(request, ActionCode.JOIN_ROOM);
 		request.setInt("roomId", roomId);
 		send(request);
-		JSONObject response = waitForFirstAction(ActionCode.REGISTER_ROOM);
+		JSONObject response = waitForFirstAction(ActionCode.JOIN_ROOM);
 		if (response.getString("status").equals("error")) {
 			switch (ErrorCode.valueOf(response.getString("error"))) {
 			case ALREADY_IN_ROOM: // This hopefully should never happen
