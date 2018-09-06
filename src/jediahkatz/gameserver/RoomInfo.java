@@ -5,7 +5,7 @@ import java.util.Arrays;
 import processing.data.JSONObject;
 
 /**
- * A wrapper class that holds information about a room.
+ * An uninstantiable wrapper class that holds information about a room.
  * Data is only accurate up to the time the RoomInfo object was created.
  * @author jediahkatz
  *

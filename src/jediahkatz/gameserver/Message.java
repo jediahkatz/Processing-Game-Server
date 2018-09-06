@@ -3,6 +3,11 @@ package jediahkatz.gameserver;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
 
+/**
+ * An uninstantiable wrapper class that holds data sent by a client.
+ * @author jediahkatz
+ *
+ */
 public class Message {
 	private int senderId;
 	private JSONObject body;

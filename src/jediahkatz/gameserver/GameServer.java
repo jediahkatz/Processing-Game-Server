@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
-import jediahkatz.gameserver.GameClient.DataFetcher;
-
 import java.util.Objects;
 
 import processing.core.*;
@@ -64,6 +62,9 @@ public class GameServer {
 		}
 	}
 	
+	/**
+	 * This method is called automatically by Processing when a sketch is closed.
+	 */
 	public void dispose() {
 		stop();
 	}
