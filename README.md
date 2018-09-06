@@ -1,100 +1,206 @@
-The following describes how to set up a Processing Library project in Eclipse and build it successfully, and to make your Library ready for distribution.
+# GameServer
+## An easy-to-use server for creating multiplayer games in Processing
 
-## Import to Eclipse
+![A sample Rock Paper Scissors game](https://i.imgur.com/erzgPfO.gifv)
 
-There are two options to import the template project into Eclipse: using a Git [fork](https://help.github.com/articles/fork-a-repo) or using a downloaded package. If you are not familiar with Git or GitHub, you should opt for the downloaded package.
+### Installation
+Download the entire project as a zip file by clicking `Clone or Download > Download ZIP` 
+on GitHub. Go to your Processing libraries folder (by default it's at 
+`C:\Users\YourName\Documents\Processing\libraries`) and extract the zip file
+ you just downloaded into a folder called `GameServer`. Finally, you should be 
+ able to access the library from your Processing IDE by clicking 
+ `Sketch > Import Library > GameServer` and also `Sketch > Import Library > Network`.
+ 
+### Tutorial
 
-### Option A: GitHub
+Every game will be composed of two types of sketches:
 
-1. Fork the template repository to use as a starting point.
-  * Navigate to https://github.com/processing/processing-library-template in your browser.
-  * Click the "Fork" button in the top-right of the page.
-  * Once your fork is ready, open the new repository's "Settings" by clicking the link in the menu bar on the right.
-  * Change the repository name to the name of your Library and save your changes.
-  * NOTE: GitHub only allows you to fork a project once. If you need to create multiple forks, you can follow these [instructions](https://beeznest.wordpress.com/2013/12/26/creating-multiple-forks-using-upstream-branches/).
-1. Clone your new repository to your Eclipse workspace.
-  * Open Eclipse and select the File → Import... menu item.
-  * Select Git → Projects from Git, and click "Next >".
-  * Select "URI" and click "Next >". 
-  * Enter your repository's clone URL in the "URI" field. The remaining fields in the "Location" and "Connection" groups will get automatically filled in.
-  * Enter your GitHub credentials in the "Authentication" group, and click "Next >".
-  * Select the `master` branch on the next screen, and click "Next >".
-  * The default settings on the "Local Configuration" screen should work fine, click "Next >".
-  * Make sure "Import existing projects" is selected, and click "Next >".
-  * Eclipse should find and select the `processing-library-template` automatically, click "Finish".
-1. Rename your Eclipse project.
-  * In the Package Explorer, right-click (ctrl-click) on the folder icon of the `processing-library-template` project, and select Refactor → Rename... from the menu that pops up. 
-  * Give the project the name of your Library, and click "OK".
-  
-### Option B: Downloaded Package
+**Server** A sketch that continuously runs, sending out and receiving data
+to and from the clients. There will generally be only one unique server sketch,
+and in most cases there's nothing to program - you can just copy and paste the 15-line
+`BasicServer.pde` sketch included in the Examples (and reproduced below).
 
-1. Download the latest Eclipse template from [here](https://github.com/processing/processing-library-template/releases). **Don't unzip the ZIP file yet.**
-1. Create a new Java project in Eclipse. 
-  * From the menubar choose File → New → Java Project. 
-  * Give the project the name of your Library. 
-  * Click "Finish".
-1. Import the template source files.
-  * Right-click (ctrl-click) onto the folder icon of your newly created project in the Package Explorer and select "Import..." from the menu that pops up. 
-  * Select General → Archive File, and click "Next >".
-  * Navigate to the ZIP file you downloaded earlier in step 1, and click "Finish".
+**Client** A sketch that interacts with an actual player of your game,
+sending out the results of the player's actions to the server and receiving
+server updates about the other clients. There are generally many client sketches,
+typically just copies of the same sketch, which will need to be programmed by you.
 
-## Set Up and Compile
+#### Running the server
 
-1. Add Processing to the project build path.
-  * Open your project's "Properties" window. 
-  * Under "Java Build Path", select the "Libraries" tab and then "Add External JARs...". 
-  * Locate and add Processing's `core.jar` to your build path. It is recommended that a copy of `core.jar` is located in your Eclipse workspace in a `libs` folder. If the `libs` folder does not exist yet, create it. Read the [section below](#AddingJARs) regarding where to find the `core.jar` file.
-  * Confirm the setup with "OK".
-1. Edit the Library properties.
-  * Open the `resources` folder inside of your Java project and double-click the `build.properties` file. You should see its contents in the Eclipse editor. 
-  * Edit the properties file, making changes to items 1-4 so that the values and paths are properly set for your project to compile. A path can be relative or absolute.
-  * Make changes to items under 5. These are metadata used in the automatically generated HTML, README, and properties documents.
-1. Compile your Library using Ant.
-  * From the menu bar, choose Window → Show View → Ant. A tab with the title "Ant" will pop up on the right side of your Eclipse editor. 
-  * Drag the `resources/build.xml` file in there, and a new item "ProcessingLibs" will appear. 
-  * Press the "Play" button inside the "Ant" tab.
-1. BUILD SUCCESSFUL. The Library template will start to compile, control messages will appear in the console window, warnings can be ignored. When finished it should say BUILD SUCCESSFUL. Congratulations, you are set and you can start writing your own Library by making changes to the source code in folder `src`.
-1. BUILD FAILED. In case the compile process fails, check the output in the console which will give you a closer idea of what went wrong. Errors may have been caused by
-  * Incorrect path settings in the `build.properties` file.
-  * Error "Javadoc failed". if you are on Windows, make sure you are using a JDK instead of a JRE in order to be able to create the Javadoc for your Library. JRE does not come with the Javadoc application, but it is required to create Libraries from this template.
+The following `BasicServer.pde` sketch should satisfy most of your server needs.
+Just keep it as a separate sketch and make sure it's running before you run any clients.
+Don't forget to put in the correct port, if you plan to change it.
+```processing
+import jediahkatz.gameserver.*;
+import processing.net.*;
+// Replace 4321 with your port
+GameServer server = new GameServer(this, 4321);
+void setup() {}
+void draw() {}
+void serverEvent(Server s, Client c) {
+  server.serverEvent(s, c);
+}
+void disconnectEvent(Client c) {
+  server.disconnectEvent(c);
+}
+```
 
-After having compiled and built your project successfully, you should be able to find your Library in Processing's sketchbook folder, examples will be listed in Processing's sketchbook menu. Files that have been created for the distribution of the Library are located in your Eclipse's `workspace/yourProject/distribution` folder. In there you will also find the `web` folder which contains the documentation, a ZIP file for downloading your Library, a folder with examples as well as the `index.html` and CSS file.
+### Building a basic client
 
-To distribute your Library please refer to the [Library Guidelines](https://github.com/processing/processing/wiki/Library-Guidelines).
+Here's a small sample of what your client can do.
+Read the documentation to learn about all the other functionality.
+Also don't forget to check out the provided examples.
 
-## Source code
+```processing
+// Import this library and the processing.net library that it's built on
+import jediahkatz.gameserver.*;
+import processing.net.*;
 
-If you want to share your Library's source code, we recommend using an online repository available for free at [GitHub](https://github.com/).
+// Instantiate your client
+GameClient client = new GameClient(this, "127.0.0.1", 4321);
 
-## <a name='AddingJARs'/>Adding core.jar and other .jar files to your classpath</a>
+void setup() {
+	// Automatically join an empty room, or if there are none
+	// then create and join a room with capacity of 5.
+	client.autojoinRoom(5);
+	
+	// Each client and room has a unique id.
+	int clientId = client.id();
+	int roomId = client.roomId();
+	
+	// We can request a RoomInfo object containing info about a room.
+	RoomInfo myRoomInfo = client.getRoomInfo(roomId);
+	// Just some of the information we can retrieve...
+	int size = myRoomInfo.size();
+	int capacity = myRoomInfo.capacity();
+	int[] clientIds = myRoomInfo.clients();
+	
+	// We can also get info about every room that exists.
+	RoomInfo[] allRoomsInfo = client.getRoomsInfo();
+	RoomInfo someRoom = allRoomsInfo[0];
+	
+	// We can leave our room and join another.
+	client.leaveRoom();
+	client.joinRoom(someRoom.id());
+	
+	// Let's disconnect the client before the sketch ends.
+	// This isn't really necessary; it will happen automatically.
+	client.disconnect();
+}
+```
 
-The `core.jar` file contains the core classes of Processing and has to be part of your classpath when building a Library. On Windows and Linux, this file is located in the Processing distribution folder inside a folder named `lib`. On Mac OS X, right-click the Processing.app and use "Show Package Contents" to see the guts. The `core.jar` file is inside Contents → Resources → Java. For further information about the classes in `core.jar`, you can see the source [here](http://code.google.com/p/processing/source/browse/trunk/processing#processing/core) and the developer documentation [here](http://processing.googlecode.com/svn/trunk/processing/build/javadoc/core/index.html).
+### Messages and attributes: JSON-based features
 
-If you created a `libs` folder as described above, put the libraries you need to add to your classpath in there. In the "Properties" of your Java project, navigate to Java Build Path → Libraries, and click "Add External JARs...". Select the `.jar` files from the `libs` folder that are required for compiling your project. Adjust the `build.xml` file accordingly.
+The GameServer library has a robust system for sending messages to other clients.
+It's based on [Processing's JSONObject](https://processing.org/reference/JSONObject.html), an object that stores key-value mappings.
+Messages are sent as JSONObjects, not strings.
 
-The `libs` folder is recommended but not a requirement, nevertheless you need to specify where your `.jar` files are located in your system in order to add them to the classpath.
+We can create a JSONObject as follows:
+```processing
+// Construct an empty JSONObject
+JSONObject data = new JSONObject();
+// We can add key-value pairs, where keys are strings
+// and values can be a variety of types.
+data.setInt("myInt", 5);
+data.setFloat("e", 2.81);
+data.setString("message", "hello world");
+data.setBoolean("myBool", true);
+// We can also retrieve values by their keys.
+int myInt = data.getInt("myInt");
+// If we don't know the type of a value, we can
+// retrieve it as a generic object.
+Object myThing = data.get("message");
+/**
+Our JSONObject looks like this:
+{
+ "myInt": 5,
+ "e": 2.81,
+ "message": "hello world",
+ "myBool": true,
+}
+**/
+```
 
-In case a Library depends on system libraries, put these dependencies next to the `.jar` file. For example, Processing's `opengl.jar` Library depends on JOGL hence the DLLs (for Windows) or jnilibs (for OS X) have to be located next to the `opengl.jar` file.
+We can set many different types as a JSONObject value, including
+other JSONObjects, and JSONArrays (arrays of JSONObjects). Read
+the [JSONObject documentation](https://processing.org/reference/JSONObject.html) for an overview.
 
-## What is the difference between JDK and JRE?
+Once we have a JSONObject, we can send it to other clients.
+```processing
+// We can send our object to a specific client...
+int clientId = 5;
+client.sendMessage(5, data);
+// Or to a list of clients...
+int[] clientIds = {1, 2, 3};
+client.sendMessage(clientIds, data);
+// Or to every client in the same room as us.
+client.broadcastMessage(data);
+```
 
-JDK stands for Java Development Kit whereas JRE stands for Java Runtime Environment. For developers it is recommended to work with a JDK instead of a JRE since more Java development related applications such as Javadoc are included. Javadoc is a requirement to properly compile and document a Processing Library as described on the guidelines page.
+We can also receive messages from other clients. Messages will be wrapped
+in a Message object, which contains the id of the sender and the message body.
 
-You can have both a JDK and a JRE installed on your system. In Eclipse you need to specify which one you want to use.
+```processing
+// Get the first unread message
+Message first = client.getNextMessage();
+// Get all the unread messages
+Message[] all = client.getMessages();
+// We can get the sender's id, and there are convenient
+// methods to retrieve data values from keys directly.
+if (first != null) {
+	int senderId = first.getSenderId();
+	JSONObject data = first.getBody();
+	// These two lines are equivalent:
+	int myInt = data.getInt('myInt');
+	int myInt2 = first.getInt('myInt');
+}
+```
 
-## The JRE System Library
+Finally, JSONObjects are also the backbone of a powerful feature called attributes.
+Attributes are just JSONObjects that can be attached to a room (or the entire server),
+and they can be retrieved by all clients.
 
-This primarily affects Windows and Linux users (because the full JDK is installed by default on Mac OS X). It is recommended that you use the JDK instead of a JRE. The JDK can be downloaded from [Oracle's download site](http://www.oracle.com/technetwork/java/javase/downloads/index.html). Also see the [Java Platform Installation page](http://www.oracle.com/technetwork/java/javase/index-137561.html), which contains useful information.
+```processing
+// We can set all the attributes at once with a JSONObject
+int roomId = client.roomId();
+JSONObject data = new JSONObject();
+data.setString("message", "hello world");
+client.setRoomAttributes(roomId, data);
+client.setServerAttributes(data);
+// Or we can set them individually
+client.putRoomAttribute(roomId, "e", 2.81);
+// We can access server attributes directly, and room attributes from the RoomInfo
+JSONObject serverAttr = client.getServerAttributes();
+RoomInfo myRoomInfo = client.getRoomInfo(roomId);
+JSONObject roomAttr = myRoomInfo.attributes();
+```
 
-To change the JRE used to compile your Java project:
+### Connecting over a network
 
-1. Open the properties of your project from the menu Project → Properties. Select "Java Build Path" and in its submenu, click on the "Libraries" tab.
-1. A list of JARs and class folders in the build path will show up. In this list you can find the JRE System Library that is used to compile your code. Remove this JRE System library.
-1. Click "Add Library...". In the popup window, choose "JRE System Library" and press "Next".
-1. Select an alternate JRE from the pull-down menu or click and modify the "Installed JREs". Confirm with "Finish" and "OK". 
+#### On the localhost
 
-## Compiling with Ant and javadoc
+The simplest way to connect over the internet is on one computer (which is not that useful).
+To do this, just connect to your local IP ("127.0.0.1") over any unused port.
 
-Ant is a Java-based build tool. For [more information](http://ant.apache.org/faq.html#what-is-ant) visit the [Ant web site](http://ant.apache.org/). Ant uses a file named `build.xml` to store build settings for a project.
+```processing
+// In BasicServer.pde
+GameServer server = new GameServer(this, 4321);
+// In your client
+GameClient client = new GameClient(this, "127.0.0.1", 4321);
+```
 
-Javadoc is an application that creates an HTML-based API documentation of Java code. You can check for its existence by typing `javadoc` on the command line. On Mac OS X, it is installed by default. On Windows and Linux, installing the JDK will also install the Javadoc tool. 
+#### On a local network
+
+To connect over your local network, you'll need to do some port forwarding.
+Log in to your router settings page (usually at address 192.168.0.1) and find 
+the section called Port Forwarding. Assuming you use port 4321, forward the inbound
+port 4321 to the local port 4321 on your computer's private IP address.
+
+#### Over the internet
+
+Instructions coming soon!
+
+### What's next
+
+* Add `putServerAttribute` methods
+* No longer require importing `processing.net.*` (not sure if this is possible)
