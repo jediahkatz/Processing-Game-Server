@@ -4,6 +4,8 @@
 ![A sample Rock Paper Scissors game](https://github.com/jediahkatz/Processing-Game-Server/blob/master/assets/rock_paper_scissors.gif
 "A sample Rock Paper Scissors game")
 
+#### Check out the [project site](https://jediahkatz.github.io/Processing-Game-Server/) and the [Javadocs](https://jediahkatz.github.io/Processing-Game-Server/reference/index.html)
+
 ### Installation
 Download the entire project as a zip file by clicking `Clone or Download > Download ZIP` 
 on GitHub. Go to your Processing libraries folder (by default it's at 
