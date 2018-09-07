@@ -1,7 +1,8 @@
 # GameServer
 ## An easy-to-use server for creating multiplayer games in Processing
 
-![A sample Rock Paper Scissors game](https://i.imgur.com/erzgPfO.gifv)
+![A sample Rock Paper Scissors game](https://github.com/jediahkatz/Processing-Game-Server/blob/master/assets/rock_paper_scissors.gif
+"A sample Rock Paper Scissors game")
 
 ### Installation
 Download the entire project as a zip file by clicking `Clone or Download > Download ZIP` 
