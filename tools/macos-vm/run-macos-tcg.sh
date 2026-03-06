@@ -27,6 +27,7 @@ OPENCORE_QCOW2="${OPENCORE_QCOW2:-${BOOT_DIR}/OpenCore.qcow2}"
 OVMF_CODE="${OVMF_CODE:-${BOOT_DIR}/OVMF_CODE_4M.fd}"
 OVMF_VARS_TEMPLATE="${OVMF_VARS_TEMPLATE:-${BOOT_DIR}/OVMF_VARS-1920x1080.fd}"
 OVMF_VARS_RUNTIME="${OVMF_VARS_RUNTIME:-${RUN_DIR}/OVMF_VARS.fd}"
+OFFLINE_ISO="${OFFLINE_ISO:-}"
 
 MONITOR_SOCKET="${MONITOR_SOCKET:-${RUN_DIR}/qemu-monitor.sock}"
 QMP_SOCKET="${QMP_SOCKET:-${RUN_DIR}/qemu-qmp.sock}"
@@ -108,6 +109,17 @@ if [[ -n "${EXTRA_QEMU_ARGS:-}" ]]; then
   # shellcheck disable=SC2206
   extra=( ${EXTRA_QEMU_ARGS} )
   args+=("${extra[@]}")
+fi
+
+if [[ -n "${OFFLINE_ISO}" ]]; then
+  if [[ ! -f "${OFFLINE_ISO}" ]]; then
+    echo "[run-macos] OFFLINE_ISO is set but file does not exist: ${OFFLINE_ISO}"
+    exit 1
+  fi
+  args+=(
+    -drive id=MacDVD,if=none,file="${OFFLINE_ISO}",format=raw
+    -device ide-hd,bus=sata.5,drive=MacDVD
+  )
 fi
 
 LOG_FILE="${LOG_DIR}/qemu-$(date +%Y%m%d-%H%M%S).log"

@@ -97,6 +97,33 @@ After installation, boot without installer media:
 INSTALL_MEDIA=0 bash tools/macos-vm/run-macos-tcg.sh
 ```
 
+## Optional: offline installer acceleration
+
+If recovery install progress appears stalled (common under TCG), you can run with an offline `InstallAssistant.pkg`.
+
+1. Download `InstallAssistant.pkg` (Apple-hosted URL).
+2. Build ISO:
+
+```bash
+mkisofs -allow-limited-size -l -J -r -iso-level 3 -V InstallAssistant \
+  -o data/macos-vm/offline/InstallAssistant.iso \
+  data/macos-vm/offline/InstallAssistant.pkg \
+  data/macos-vm/OSX-KVM/scripts/run_offline.sh
+```
+
+3. Launch VM with ISO attached:
+
+```bash
+OFFLINE_ISO=/workspace/data/macos-vm/offline/InstallAssistant.iso \
+  bash tools/macos-vm/run-macos-tcg.sh
+```
+
+4. In macOS Recovery, open `Utilities -> Terminal` and run:
+
+```bash
+sh /Volumes/InstallAssistant/run_offline.sh
+```
+
 ## Notes
 
 - TCG is significantly slower than KVM. Installer and setup can take a long time.
