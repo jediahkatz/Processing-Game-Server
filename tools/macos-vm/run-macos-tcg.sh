@@ -33,10 +33,10 @@ MONITOR_SOCKET="${MONITOR_SOCKET:-${RUN_DIR}/qemu-monitor.sock}"
 QMP_SOCKET="${QMP_SOCKET:-${RUN_DIR}/qemu-qmp.sock}"
 PIDFILE="${PIDFILE:-${RUN_DIR}/qemu.pid}"
 
-MY_OPTIONS="${MY_OPTIONS:-+ssse3,+sse4.2,+popcnt,+avx,+avx2,+aes,+xsave,+xsaveopt,check}"
-CPU_MODEL="${CPU_MODEL:-Penryn}"
+MY_OPTIONS="${MY_OPTIONS:-+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check}"
+CPU_MODEL="${CPU_MODEL:-Skylake-Client}"
 CPU_VENDOR="${CPU_VENDOR:-GenuineIntel}"
-CPU_EXTRA="${CPU_EXTRA:-vmware-cpuid-freq=on}"
+CPU_EXTRA="${CPU_EXTRA:--hle,-rtm,+invtsc,vmware-cpuid-freq=on}"
 
 if [[ ! -f "${SYSTEM_DISK}" ]]; then
   echo "[run-macos] Missing system disk: ${SYSTEM_DISK}"

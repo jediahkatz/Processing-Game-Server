@@ -42,6 +42,27 @@ Confirm installer media attachment mode in launch args:
 
 Use the provided launcher defaults in `run-macos-tcg.sh`.
 
+## Base System boot returns to picker or panics in `com.apple.kec.corecrypto`
+
+If `macOS Base System` immediately drops back to OpenCore (black screen ~60–100s), or verbose boot panics in `corecrypto`, use the known-good TCG combination:
+
+- OpenCore pinned to pre-Tahoe commit: `OPENCORE_COMMIT=991523f`
+- CPU model: `Skylake-Client`
+- CPU extra: `-hle,-rtm,+invtsc,vmware-cpuid-freq=on`
+- CPU flags without AVX2
+
+Refresh assets with pinned OpenCore:
+
+```bash
+OPENCORE_COMMIT=991523f MACOS_SHORTNAME=sonoma bash tools/macos-vm/fetch-macos-assets.sh
+```
+
+Then relaunch with defaults (or equivalent explicit overrides):
+
+```bash
+INSTALL_MEDIA=1 bash tools/macos-vm/run-macos-tcg.sh
+```
+
 ## VNC port already in use
 
 Use non-conflicting display number:

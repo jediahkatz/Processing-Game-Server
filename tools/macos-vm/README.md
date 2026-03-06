@@ -35,10 +35,10 @@ Expected: it should report **TCG-only** mode if `/dev/kvm` is absent.
 
 ## 3) Fetch OpenCore + macOS recovery assets
 
-Defaults to Sonoma recovery files. Override with `MACOS_SHORTNAME` if needed (`ventura`, `sonoma`, `sequoia`, etc.).
+Defaults to Sonoma recovery files and pins a pre-Tahoe OpenCore build (`OPENCORE_COMMIT=991523f`) that is more stable in TCG mode. Override `OPENCORE_COMMIT` if you want HEAD.
 
 ```bash
-MACOS_SHORTNAME=sonoma bash tools/macos-vm/fetch-macos-assets.sh
+MACOS_SHORTNAME=sonoma OPENCORE_COMMIT=991523f bash tools/macos-vm/fetch-macos-assets.sh
 ```
 
 ## 4) Create VM disk
@@ -55,6 +55,11 @@ ALLOCATED_RAM=8192 CPU_CORES=2 CPU_THREADS=4 VNC_DISPLAY=51 \
 ```
 
 The script prints the VNC endpoint (`127.0.0.1:5951` when `VNC_DISPLAY=51`).
+
+Known-good TCG CPU defaults are already set in the launcher:
+- `CPU_MODEL=Skylake-Client`
+- `CPU_EXTRA=-hle,-rtm,+invtsc,vmware-cpuid-freq=on`
+- `MY_OPTIONS=+ssse3,+sse4.2,+popcnt,+avx,+aes,+xsave,+xsaveopt,check` (AVX2 disabled)
 
 ### First-boot installer notes
 
@@ -111,20 +116,25 @@ INSTALL_MEDIA=0 bash tools/macos-vm/run-macos-tcg.sh
 
 If recovery install progress appears stalled (common under TCG), you can run with an offline `InstallAssistant.pkg`.
 
-1. Download `InstallAssistant.pkg` (Apple-hosted URL).
+1. Download `InstallAssistant.pkg` (Apple-hosted URL), for example:
+
+```bash
+curl -L --fail --output data/macos-vm/boot/InstallAssistant.pkg \
+  "https://swcdn.apple.com/content/downloads/15/23/047-60297-A_CC7WE2S6AE/h1lvp87655fnwe4zityuew187qsnj7dzcd/InstallAssistant.pkg"
+```
+
 2. Build ISO:
 
 ```bash
-mkisofs -allow-limited-size -l -J -r -iso-level 3 -V InstallAssistant \
-  -o data/macos-vm/offline/InstallAssistant.iso \
-  data/macos-vm/offline/InstallAssistant.pkg \
-  data/macos-vm/OSX-KVM/scripts/run_offline.sh
+genisoimage -allow-limited-size -R -J -V INSTALLASSISTANT \
+  -o data/macos-vm/boot/InstallAssistant.iso \
+  data/macos-vm/boot/InstallAssistant.pkg
 ```
 
 3. Launch VM with ISO attached:
 
 ```bash
-OFFLINE_ISO=/workspace/data/macos-vm/offline/InstallAssistant.iso \
+OFFLINE_ISO=/workspace/data/macos-vm/boot/InstallAssistant.iso \
   bash tools/macos-vm/run-macos-tcg.sh
 ```
 
