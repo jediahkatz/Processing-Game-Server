@@ -89,6 +89,16 @@ bash tools/macos-vm/capture-frame.sh
 
 This writes both `.ppm` and `.png` files under `data/macos-vm/screens/`.
 
+## 8) Optional continuous install watcher
+
+To log disk growth and periodic screenshots while installation runs:
+
+```bash
+INTERVAL_SEC=300 bash tools/macos-vm/watch-install-progress.sh
+```
+
+This appends entries to `data/macos-vm/logs/install-watch.log` and captures frames on each interval.
+
 ## Post-install boot
 
 After installation, boot without installer media:
