@@ -121,10 +121,19 @@ OFFLINE_ISO=/workspace/data/macos-vm/offline/InstallAssistant.iso \
 4. In macOS Recovery, open `Utilities -> Terminal` and run:
 
 ```bash
-sh /Volumes/InstallAssistant/run_offline.sh
+cd "/Volumes/Macintosh HD"
+mkdir -p private/tmp
+cp -R "/Install macOS Tahoe.app" private/tmp
+cd "private/tmp/Install macOS Tahoe.app"
+mkdir -p Contents/SharedSupport
+cp -R /Volumes/InstallAssistant/InstallAssistant.pkg Contents/SharedSupport/SharedSupport.dmg
+./Contents/MacOS/InstallAssistant
 ```
+
+> Note: The upstream `run_offline.sh` helper is Ventura-oriented. For Tahoe in recovery, the manual sequence above is the reliable path.
 
 ## Notes
 
 - TCG is significantly slower than KVM. Installer and setup can take a long time.
 - Resolution can be changed later by using different OVMF vars images or OpenCore config adjustments.
+- If installer UI disappears, check `/var/log/install.log` and running installer processes from Recovery Terminal.
