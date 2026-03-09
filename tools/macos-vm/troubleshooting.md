@@ -87,3 +87,19 @@ After installation finishes and VM reboots:
 ```bash
 INSTALL_MEDIA=0 bash tools/macos-vm/run-macos-tcg.sh
 ```
+
+## Setup Assistant country/terms screen is unresponsive
+
+In TCG mode, first-run onboarding panes can render but fail to process clicks/keys reliably.
+If blocked, boot to Recovery and create a local user + setup bypass marker on the installed
+`... - Data` volume.
+
+- Use `/usr/bin/dscl` explicitly in Recovery (plain `dscl` may not resolve in PATH).
+- Create `.AppleSetupDone` under `<DATA>/private/var/db/.AppleSetupDone`.
+- Create a local admin user in `<DATA>/private/var/db/dslocal/nodes/Default`.
+
+Reference command template:
+
+```bash
+tools/macos-vm/recovery-create-local-user.sh
+```

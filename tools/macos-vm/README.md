@@ -112,6 +112,10 @@ After installation, boot without installer media:
 INSTALL_MEDIA=0 bash tools/macos-vm/run-macos-tcg.sh
 ```
 
+If Setup Assistant is unresponsive under TCG, use the Recovery Terminal sequence in
+`tools/macos-vm/recovery-create-local-user.sh` (run the commands manually in Recovery,
+using the mounted `... - Data` volume path for your installation).
+
 ## Optional: offline installer acceleration
 
 If recovery install progress appears stalled (common under TCG), you can run with an offline `InstallAssistant.pkg`.
